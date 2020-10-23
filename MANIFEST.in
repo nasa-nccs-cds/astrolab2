@@ -1,0 +1,6 @@
+recursive-include astrolab/static *.*
+include astrolab.json
+
+include LICENSE
+include setup.py
+include pyproject.toml
