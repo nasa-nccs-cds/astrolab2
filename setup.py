@@ -12,7 +12,6 @@ from jupyter_packaging import (
     get_version,
 )
 
-
 here = os.path.dirname(os.path.abspath(__file__))
 
 log.set_verbosity(log.DEBUG)
@@ -48,35 +47,27 @@ setup_args = dict(
     description='Jupyterlab workbench supporting visual exploration and classification of astronomical xray and light curve data.',
     long_description=LONG_DESCRIPTION,
     include_package_data=True,
-    install_requires=[
-        'ipywidgets>=7.0.0',
-    ],
+    install_requires=[ 'ipywidgets>=7.0.0',  ],
     packages=find_packages(),
     zip_safe=False,
     cmdclass=cmdclass,
     author='Thomas Maxwell',
     author_email='thomas.maxwell@nasa.gov',
     url='https://github.com/nasa-nccs-cds/astrolab2',
-    keywords=[
-        'ipython',
-        'jupyter',
-        'widgets',
-    ],
+    data_files=[ ],
+    keywords=[  'ipython',  'jupyter',  'widgets',  ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: IPython',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Topic :: Multimedia :: Graphics',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
 )
 
 setup(**setup_args)
+
+
+
