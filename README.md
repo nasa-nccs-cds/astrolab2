@@ -9,10 +9,6 @@ Installation
 To install use pip:
 
     $ pip install astrolab
-    $ jupyter nbextension enable --py --sys-prefix astrolab
-
-To install for jupyterlab
-
     $ jupyter labextension install astrolab
 
 For a development installation (requires npm),
@@ -20,8 +16,6 @@ For a development installation (requires npm),
     $ git clone https://github.com/nasa-nccs-cds/astrolab2.git
     $ cd astrolab2
     $ pip install -e .
-    $ jupyter nbextension install --py --symlink --sys-prefix astrolab
-    $ jupyter nbextension enable --py --sys-prefix astrolab
     $ jupyter labextension install js
 
 When actively developing your extension, build Jupyter Lab with the command:
