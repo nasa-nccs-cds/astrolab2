@@ -44,6 +44,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
 
     def reembed(self, **kwargs ):
         t0 = time.time()
+        self.clear_bins()
         self._embedding = ReductionManager.instance().umap_embedding( **kwargs )
         self.update_plot()
         print(f"PointCloudManager: completed embed in {time.time()-t0} sec\n\n\n")
