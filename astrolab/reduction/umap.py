@@ -1022,12 +1022,14 @@ def optimize_layout_euclidean(
     epoch_of_next_negative_sample = epochs_per_negative_sample.copy()
     epoch_of_next_sample = epochs_per_sample.copy()
     optimize_fn = numba.njit( _optimize_layout_euclidean_single_epoch, fastmath=True, parallel=parallel )
+    plot_update_period = 4
     if n_epochs == 1:
         pass
     else:
       print( f" >>> Embed n_epochs={n_epochs}, alpha={alpha} ")
       for n in range(n_epochs):
-        if dim == 3: PointCloudManager.instance().update_plot( points=head_embedding )
+        if (dim == 3) and ((n % plot_update_period) == 0):
+            PointCloudManager.instance().update_plot( points=head_embedding )
         optimize_fn(
             head_embedding,
             tail_embedding,
@@ -1052,8 +1054,6 @@ def optimize_layout_euclidean(
 
         if verbose and n % int(n_epochs / 10) == 0:
             print("\tcompleted ", n, " / ", n_epochs, "epochs")
-
-#      eventCentral.submitEvent(dict(event="gui", type="plot", value=head_embedding, reset_camera=False), EventMode.Gui)
 
     return head_embedding
 
