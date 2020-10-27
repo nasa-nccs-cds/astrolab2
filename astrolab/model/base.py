@@ -41,7 +41,8 @@ class AstroSingleton:
         cfg_classes = list( cls._classes_with_config_traits())
  #       print( f"generate_config_file, classes = {cls.config_classes} {cfg_classes}")
         for clss in cfg_classes:
-            lines.append( clss.class_config_section(cfg_classes) )
+            try:     lines.append( clss.class_config_section(cfg_classes) )
+            except:  lines.append(clss.class_config_section())
         return '\n'.join(lines)
 
     @classmethod
