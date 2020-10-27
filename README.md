@@ -9,7 +9,7 @@ Conda Setup
     > conda create --name astrolab
     > conda activate astrolab
     > conda install -c conda-forge nodejs jupyterlab jupytext ipywidgets ipycanvas ipyevents qgrid numpy pynndescent xarray jupyter_bokeh rasterio umap-learn scipy scikit-learn toml keras tensorflow rioxarray numba dask netcdf4 zarr toolz scikit-image
-    > jupyter labextension install @jupyter-widgets/jupyterlab-manager  ipycanvas ipyevents qgrid2 @bokeh/jupyter_bokeh 
+    > jupyter labextension install @jupyter-widgets/jupyterlab-manager itk-jupyter-widgets qgrid2 @bokeh/jupyter_bokeh
     > npm i @jupyterlab/apputils
 
 Installation
