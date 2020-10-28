@@ -71,7 +71,6 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         self._marker_pids[icid] = np.append( self._marker_pids[icid], pids )
         marked_points: np.ndarray = self._embedding[ self._marker_pids[icid], : ]
 #        print( f"  ***** POINTS- mark_points[{icid}], #pids = {len(pids)}, #points = {marked_points.shape[0]}")
-        self._marker_points[ 0 ] = self.empty_pointset
         self._marker_points[ icid ] = marked_points # np.concatenate(  [ self._marker_points[ icid ], marked_points ] )
         lmgr.addAction( "mark", "points", pids, icid )
         if update: self.update_plot()

@@ -17,8 +17,13 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
     def _default_config_file(self):
         return os.path.join( os.path.expanduser("~"), "." + self.name, "configuration.py" )
 
-    def __init__(self, **kwargs ):
+    def __init__(self, mode: str, **kwargs ):
         super(Astrolab, self).__init__( **kwargs )
+        self._mode = mode
+
+    @property
+    def mode(self):
+        return self._mode
 
     def configure(self):
         app = tlc.Application.instance()
