@@ -63,11 +63,12 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         self.update_plot()
 
     def mark_points(self, pids: np.ndarray, cid: int = -1, update=False):
-        from astrolab.gui.control import ActionsPanel
         from astrolab.model.labels import LabelsManager
+        print( f"PointCloudManager.mark_points: pids = {pids}, cid = {cid}")
         lmgr = LabelsManager.instance()
         icid: int = cid if cid > 0 else lmgr.current_cid
-        self._marker_pids[icid] = np.unique( np.append( self._marker_pids[icid], pids ) )
+        self.clear_pids( pids )
+        self._marker_pids[icid] = np.append( self._marker_pids[icid], pids )
         marked_points: np.ndarray = self._embedding[ self._marker_pids[icid], : ]
 #        print( f"  ***** POINTS- mark_points[{icid}], #pids = {len(pids)}, #points = {marked_points.shape[0]}")
         self._marker_points[ 0 ] = self.empty_pointset
@@ -98,6 +99,13 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         print(f" binned_points[{self._n_point_bins-1}]: size = {self._binned_points[-1].shape[0]}, bin = (> {lspace[-1]})")
         LabelsManager.instance().addAction( "color", "points" )
         self.update_plot()
+
+    def clear_pids(self, pids: List[int], **kwargs):
+        dpts = np.vectorize(lambda x: x in pids)
+        for iC, marker_pids in enumerate( self._marker_pids ):
+            if len( marker_pids ) > 0:
+                self._marker_pids[iC] = np.delete( self._marker_pids[iC], dpts(marker_pids) )
+                self._marker_points[iC] = self._embedding[self._marker_pids[iC], :] if len( self._marker_pids[iC] ) > 0 else self.empty_pointset
 
     def clear_points(self, icid: int, **kwargs ):
         pids = kwargs.get('pids', None )

@@ -23,7 +23,7 @@ def isIntRGB( color ):
 
 def format_color( color: Union[str,List[Union[float,int]]] ) -> List[float]:
     if isinstance(color, str):  return h2c(color)
-    elif isIntRGB(color):       return [c / 255 for c in color]
+    elif isIntRGB(color):       return [c / 255.0 for c in color]
     else:                       return color
 
 def format_colors( classes: List[Tuple[str,Union[str,List[Union[float,int]]]]] ) -> List[List[float]]:
@@ -66,23 +66,37 @@ class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
         self._flow: ActivationFlow = None
         self._actions = []
         self._labels_data: xa.DataArray = None
+        self._selected_class = 0
         self._optype = None
         self.template = None
         self.n_spread_iters = 1
-        self.wSelectedClass: ipw.ToggleButtons = None
+        self.wSelectedClass: ipw.HBox = None
+        self._buttons = []
 
     @property
     def current_class(self) -> str:
-        return self.wSelectedClass.value
+        return self._labels[ self._selected_class ]
 
     @property
-    def current_cid(self) -> str:
-        return self.wSelectedClass.index
+    def current_cid(self) -> int:
+        return self._selected_class
+
+    def set_selected_class(self, iclass, *args ):
+        self._selected_class = iclass
+        for iB, button in enumerate(self._buttons):
+            if iB == self._selected_class:  button.layout = {'border': '3px solid #FFFF00'}
+            else:                           button.layout = {'border': '1px solid #000000'}
 
     def gui( self ) -> ipw.DOMWidget:
         if self.wSelectedClass is None:
-            self.wSelectedClass = ipw.RadioButtons( options=self.labels, description="Class: ", disabled=False, tooltip="Select current class" )
-            self.wSelectedClass.layout = ipw.Layout( width = "100%"  )
+            for iC, (color, label) in enumerate(zip( self._colors, self._labels )):
+                button = ipw.Button( description=label, layout=ipw.Layout( flex='1 1 auto', height="auto")  )
+                button.style.button_color = color
+                button.on_click( partial( self.set_selected_class, iC ) )
+                self._buttons.append( button )
+            self.wSelectedClass = ipw.HBox( self._buttons )
+            self.wSelectedClass.layout = ipw.Layout( flex='1 1 auto', width = "100%"  )
+            self.set_selected_class( 0 )
         return self.wSelectedClass
 
     def flow(self) -> Optional[ActivationFlow]:
@@ -205,10 +219,12 @@ class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
     def nLabels(self) -> int:
         return len(self._labels)
 
-    def setLabels(self, labels: List[Tuple[str, List[float]]], **kwargs):
-        unlabeled_color = kwargs.get( 'unlabeled', [1.0, 1.0, 0.0, 1.0] )
+    def setLabels(self, labels: List[Tuple[str, str]], **kwargs):
+        unlabeled_color = kwargs.get( 'unlabeled', "YELLOW" )
         label_list = [ ('Unlabeled', unlabeled_color ) ] + labels
-        self._colors = format_colors( label_list )
+        for ( label, color ) in labels:
+            if color.upper() == unlabeled_color: raise Exception( f"{unlabeled_color} is a reserved color")
+        self._colors = [ item[1] for item in label_list ]
         self._labels = [ item[0] for item in label_list ]
 
     def toDict( self, alpha ) -> OrderedDict:
