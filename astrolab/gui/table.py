@@ -8,7 +8,6 @@ import pandas as pd
 import ipywidgets as ipw
 from .widgets import ToggleButton
 from astrolab.data.manager import DataManager
-import ipywidgets as widgets
 from .points import PointCloudManager
 from traitlets import traitlets
 from astrolab.model.labels import LabelsManager
@@ -19,11 +18,11 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
 
     def __init__(self, **kwargs):
         super(TableManager, self).__init__(**kwargs)
-        self._wGui: widgets.VBox = None
+        self._wGui: ipw.VBox = None
         self._dataFrame: pd.DataFrame = None
         self._cols: List[str] = None
         self._tables: List[qgrid.QgridWidget] = []
-        self._wTablesWidget: widgets.Tab = None
+        self._wTablesWidget: ipw.Tab = None
         self._current_column_index: int = 0
         self._current_selection: List[int] = []
         self._selection_listeners: List[Callable[[Dict],None]] = [ ]
@@ -191,16 +190,16 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
 #        self._events.append( events )
         return wTable
 
-    def _createGui( self ) -> widgets.VBox:
+    def _createGui( self ) -> ipw.VBox:
         wSelectionPanel = self._createSelectionPanel()
         self._wTablesWidget = self._createTableTabs()
-        return widgets.VBox([wSelectionPanel, self._wTablesWidget])
+        return ipw.VBox([wSelectionPanel, self._wTablesWidget])
 
-    def _createSelectionPanel( self ) -> widgets.HBox:
-        self._wFind = widgets.Text( value='', placeholder='Find items', description='Find:', disabled=False, continuous_update = False, tooltip="Search in sorted column" )
+    def _createSelectionPanel( self ) -> ipw.HBox:
+        self._wFind = ipw.Text( value='', placeholder='Find items', description='Find:', disabled=False, continuous_update = False, tooltip="Search in sorted column" )
         self._wFind.observe(self._process_find, 'value')
         wFindOptions = self._createFindOptionButtons()
-        wSelectionPanel = widgets.HBox( [ self._wFind, wFindOptions ] )
+        wSelectionPanel = ipw.HBox( [ self._wFind, wFindOptions ] )
         wSelectionPanel.layout = ipw.Layout( justify_content = "center", align_items="center", width = "auto", height = "50px", min_height = "50px", border_width=1, border_color="white" )
         return wSelectionPanel
 
@@ -215,7 +214,7 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
                 widget.add_listener( partial( self._process_find_options, name ) )
                 self._match_options[ name ] = widget.state
 
-        buttonbox =  widgets.HBox( [ w.gui() for w in self._search_widgets.values() ] )
+        buttonbox =  ipw.HBox( [ w.gui() for w in self._search_widgets.values() ] )
         buttonbox.layout = ipw.Layout( width = "300px", min_width = "300px", height = "auto" )
         return buttonbox
 
@@ -253,8 +252,8 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
         self._match_options[ name ] = state
         self._process_find( dict( new=self._wFind.value ) )
 
-    def _createTableTabs(self) -> widgets.Tab:
-        wTab = widgets.Tab()
+    def _createTableTabs(self) -> ipw.Tab:
+        wTab = ipw.Tab()
         self._tables.append( self._createTable( 0 ))
         wTab.set_title( 0, 'Catalog')
         for iC, ctitle in enumerate( LabelsManager.instance().labels[1:], 1 ):
@@ -270,7 +269,7 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
     def _handle_key_event(self, event: Dict ):
         print( f" ################## handle_key_event: {event}  ################## ################## ##################" )
 
-    def gui( self, **kwargs ) -> widgets.VBox:
+    def gui( self, **kwargs ) -> ipw.VBox:
         if self._wGui is None:
             self.init( **kwargs )
             self._wGui = self._createGui()

@@ -20,21 +20,23 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     dataset = tl.Unicode("").tag(config=True)
     model_dims = tl.Int(16).tag(config=True)
     subsample = tl.Int( 5 ).tag(config=True)
+    MODES = [ "swift", "tess" ]
 
-    def __init__(self, mode: str = None, **kwargs):
+    def __init__(self, **kwargs):
         super(DataManager, self).__init__(**kwargs)
-        from astrolab.gui.application import Astrolab
         self.datasets = {}
-        self._mode = mode if mode is not None else Astrolab.instance().mode
+        self._mode_index = 0
         self._model_dims_selector: ip.SelectionSlider = None
         self._subsample_selector: ip.SelectionSlider = None
         self._progress = None
         self._dset_selection: ip.Select = None
         self.dataset = "NONE"
+        self._wModeTabs: ip.Tab = None
 
     @property
     def mode(self):
-        return self._mode
+        if self._wModeTabs is None: return None
+        return self.MODES[ self._wModeTabs.selected_index ]
 
     @classmethod
     def getXarray( cls, id: str, xcoords: Dict, subsample: int, xdims:OrderedDict, **kwargs ) -> xa.DataArray:
@@ -120,14 +122,21 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
         creationPanel: ip.VBox = ip.VBox( [ self._model_dims_selector,self._subsample_selector, button_hbox ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return creationPanel
 
-    def gui( self, **kwargs ) -> widgets.Tab():
-        wTab = widgets.Tab( layout = ip.Layout( width='auto', height='auto' ) )
-        selectPanel = self.getSelectionPanel()
-        creationPanel = self.getCreationPanel()
-        wTab.children = [ creationPanel, selectPanel ]
-        wTab.set_title( 0, "Create New")
-        wTab.set_title( 1, "Select Existing")
-        return wTab
+    def gui( self, **kwargs ) -> ip.Tab():
+        if self._wModeTabs is None:
+            mode_tabs = []
+            self._wModeTabs = ip.Tab( layout = ip.Layout( width='auto', height='auto' ) )
+            for iTab, mode in enumerate( self.MODES ):
+                self._wModeTabs.set_title( iTab, mode )
+                wTab = ip.Tab( layout = ip.Layout( width='auto', height='auto' ) )
+                selectPanel = self.getSelectionPanel()
+                creationPanel = self.getCreationPanel()
+                wTab.children = [ creationPanel, selectPanel ]
+                wTab.set_title( 0, "Create New")
+                wTab.set_title( 1, "Select Existing")
+                mode_tabs.append( wTab )
+            self._wModeTabs.children = mode_tabs
+        return self._wModeTabs
 
     def getInputFileData(self, input_file_id: str, subsample: int = 1, dims: Tuple[int] = None ):
         input_file_path = os.path.expanduser( os.path.join( self.data_dir, "astrolab", self._mode, f"{input_file_id}.pkl") )

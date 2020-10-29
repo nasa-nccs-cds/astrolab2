@@ -17,9 +17,10 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
     def _default_config_file(self):
         return os.path.join( os.path.expanduser("~"), "." + self.name, "configuration.py" )
 
-    def __init__(self, mode: str, **kwargs ):
+    def __init__(self, mode: str = None, **kwargs ):
+        from astrolab.data.manager import DataManager
         super(Astrolab, self).__init__( **kwargs )
-        self._mode = mode
+        self._mode = mode if mode is not None else DataManager.instance().mode
 
     @property
     def mode(self):
