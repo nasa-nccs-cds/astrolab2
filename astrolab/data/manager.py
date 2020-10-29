@@ -14,6 +14,7 @@ from astrolab.model.base import AstroSingleton
 
 class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     reduce_method = tl.Unicode("Autoencoder").tag(config=True)
+    reduce_nepochs = tl.Int( 2 ).tag(config=True)
     cache_dir = tl.Unicode("~/Development/Cache").tag(config=True)
     data_dir = tl.Unicode("~/Development/Data").tag(config=True)
     dataset = tl.Unicode("").tag(config=True)
@@ -27,6 +28,9 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
         self._mode = mode if mode is not None else Astrolab.instance().mode
         self._model_dims_selector: ip.SelectionSlider = None
         self._subsample_selector: ip.SelectionSlider = None
+        self._progress = None
+        self._dset_selection: ip.Select = None
+        self.dataset = "NONE"
 
     @property
     def mode(self):
@@ -52,8 +56,13 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
             raise Exception( f"Unknown data mode: {self._mode}, should be 'tess' or 'swift")
 
     def prepare_inputs( self, *args ):
+        self._progress.value = 0.02
         self.model_dims = self._model_dims_selector.value
         self.subsample = self._subsample_selector.value
+        file_name = f"raw" if self.reduce_method == "None" else f"{self.reduce_method}-{self.model_dims}"
+        if self.subsample > 1: file_name = f"{file_name}-ss{self.subsample}"
+        output_file = os.path.join( self.datasetDir, file_name + ".nc" )
+
         input_vars = self.get_input_mdata()
         np_embedding = self.getInputFileData( input_vars['embedding'], self.subsample )
         dims = np_embedding.shape
@@ -64,41 +73,51 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
         data_vars.update( { vid: self.getXarray( vid, xcoords, self.subsample, xdims ) for vid in mdata_vars } )
         pspec = input_vars['plot']
         data_vars.update( { f'plot-{vid}': self.getXarray( pspec[vid], xcoords, self.subsample, xdims, norm=pspec.get('norm','')) for vid in [ 'x', 'y' ] } )
-        epochs = int(self.config.value("input.reduction/epochs", 1))
+        self._progress.value = 0.1
         if self.reduce_method != "None":
-           reduced_spectra = ReductionManager.instance().reduce( data_vars['embedding'], self.reduce_method, self.model_dims, epochs )
+           reduced_spectra = ReductionManager.instance().reduce( data_vars['embedding'], self.reduce_method, self.model_dims, self.reduce_nepochs )
            coords = dict( samples=xcoords['samples'], model=np.arange( self.model_dims ) )
            data_vars['reduction'] =  xa.DataArray( reduced_spectra, dims=['samples','model'], coords=coords )
+           self._progress.value = 0.8
 
         dataset = xa.Dataset( data_vars, coords=xcoords, attrs = {'type':'spectra'} )
         dataset.attrs["colnames"] = mdata_vars
-        file_name = f"raw" if self.reduce_method == "None" else f"{self.reduce_method}-{self.model_dims}"
-        if self.subsample > 1: file_name = f"{file_name}-ss{self.subsample}"
-        mode = 0o777
-        os.makedirs( self.datasetDir, mode, True )
-        output_file = os.path.join( self.datasetDir, file_name + ".nc" )
-        print( f"Writing output to {output_file}")
+        print( f"Writing output to {output_file}" )
         dataset.to_netcdf( output_file, format='NETCDF4', engine='netcdf4' )
+        self.updateDatasetList()
+        self._progress.value = 1.0
+
+    def updateDatasetList(self):
+        self._dset_selection.options = self.getDatasetList()
+
+    def select_dataset(self, *args ):
+        from astrolab.gui.application import Astrolab
+        if self.dataset != self._dset_selection.value:
+            print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dataset}'")
+            self.dataset = self._dset_selection.value
+            Astrolab.instance(self._mode).refresh()
 
     def getSelectionPanel(self) -> ip.HBox:
         dsets: List[str] = self.getDatasetList()
-        files: ip.Select = ip.Select( options = dsets, description='Datasets:',disabled=False )
+        self._dset_selection: ip.Select = ip.Select( options = dsets, description='Datasets:',disabled=False )
+        if len( dsets ) > 0: self._dset_selection.value = dsets[0]
         load: ip.Button = ip.Button( description="Load")
-        def select_dataset(b): self.dataset = files.value
-        load.on_click( select_dataset )
-        filePanel: ip.HBox = ip.HBox( [files, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
+        load.on_click( self.select_dataset )
+        filePanel: ip.HBox = ip.HBox( [self._dset_selection, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return filePanel
 
     def getCreationPanel(self) -> ip.HBox:
-        load: ip.Button = ip.Button( description="Create")
-        self._model_dims_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(3,50), description='Model Dimension:', value=self.model_dims, layout=ip.Layout( width="100%" ),
+        load: ip.Button = ip.Button( description="Create", layout=ip.Layout( flex='1 1 auto' ) )
+        self._model_dims_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(3,50), description='Model Dimension:', value=self.model_dims, layout=ip.Layout( width="auto" ),
                                                    continuous_update=True, orientation='horizontal', readout=True, disabled=False  )
 
-        self._subsample_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(1,50), description='Subsample:', value=self.subsample, layout=ip.Layout( width="100%" ),
+        self._subsample_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(1,50), description='Subsample:', value=self.subsample, layout=ip.Layout( width="auto" ),
                                                    continuous_update=True, orientation='horizontal', readout=True, disabled=False  )
 
         load.on_click( self.prepare_inputs )
-        creationPanel: ip.HBox = ip.HBox( [self._model_dims_selector,self._subsample_selector,load], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
+        self._progress = ip.FloatProgress( value=0.0, min=0, max=1.0, step=0.01, description='Progress:', bar_style='info', orientation='horizontal', layout=ip.Layout( flex='1 1 auto' ) )
+        button_hbox: ip.HBox = ip.HBox( [ load,self._progress ], layout=ip.Layout( width="100%", height="auto" ) )
+        creationPanel: ip.VBox = ip.VBox( [ self._model_dims_selector,self._subsample_selector, button_hbox ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return creationPanel
 
     def gui( self, **kwargs ) -> widgets.Tab():
@@ -144,14 +163,16 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     def getDatasetList(self):
         dset_glob = os.path.expanduser(f"{self.datasetDir}/*.nc")
         print( f"  Listing datasets from glob: '{dset_glob}' ")
-        return [ Path(f).stem for f in glob.glob( dset_glob ) ]
+        files = list(filter(os.path.isfile, glob.glob( dset_glob ) ) )
+        files.sort( key=lambda x: os.path.getmtime(x), reverse=True )
+        return [ Path(f).stem for f in files ]
 
     def loadCurrentProject(self) -> xa.Dataset:
-        projId = f"{self.reduce_method}-{self.model_dims}-ss{self.subsample}"
-        return self.loadDataset( projId )
+        self.select_dataset()
+        return self.loadDataset( self.dataset )
 
     @property
     def datasetDir(self):
-        dsdir = os.path.join( self.cache_dir, "astrolab", self._mode )
+        dsdir = os.path.join( os.path.expanduser( self.cache_dir ), "astrolab", self._mode )
         os.makedirs( dsdir, exist_ok=True )
         return dsdir

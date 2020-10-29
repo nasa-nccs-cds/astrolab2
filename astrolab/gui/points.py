@@ -17,11 +17,20 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         super(PointCloudManager, self).__init__(**kwargs)
         self._gui: Viewer = None
         self._n_point_bins = 27
+        self.initialize_points()
+
+    def initialize_points(self):
         self._embedding: np.ndarray = None
-        self._marker_points: List[np.ndarray] = [ self.empty_pointset for ic in range( LabelsManager.instance().nLabels ) ]
-        self._marker_pids: List[np.ndarray] = [ self.empty_pids for ic in range( LabelsManager.instance().nLabels ) ]
         self._binned_points: List[np.ndarray] = [self.empty_pointset for ic in range(self._n_point_bins)]
         self._points: np.ndarray = self.empty_pointset
+        self._marker_points: List[np.ndarray] = None
+        self._marker_pids: List[np.ndarray] = None
+
+    def initialize_markers(self):
+        if self._marker_points is None:
+            nLabels = LabelsManager.instance().nLabels
+            self._marker_points: List[np.ndarray] = [ self.empty_pointset for ic in range( nLabels ) ]
+            self._marker_pids: List[np.ndarray] = [ self.empty_pids for ic in range( nLabels ) ]
 
     @property
     def empty_pointset(self) -> np.ndarray:
@@ -41,6 +50,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         reduced_data: xa.DataArray = project_dataset.reduction
         reduced_data.attrs['dsid'] = 'swift'
         self._embedding = ReductionManager.instance().umap_init( reduced_data, **kwargs  )
+        self.initialize_markers()
 
     def reembed(self, **kwargs ):
         t0 = time.time()
@@ -65,6 +75,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
     def mark_points(self, pids: np.ndarray, cid: int = -1, update=False):
         from astrolab.model.labels import LabelsManager
         print( f"PointCloudManager.mark_points: pids = {pids}, cid = {cid}")
+        self.initialize_markers()
         lmgr = LabelsManager.instance()
         icid: int = cid if cid > 0 else lmgr.current_cid
         self.clear_pids( pids )
@@ -100,28 +111,31 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         self.update_plot()
 
     def clear_pids(self, pids: List[int], **kwargs):
-        dpts = np.vectorize(lambda x: x in pids)
-        for iC, marker_pids in enumerate( self._marker_pids ):
-            if len( marker_pids ) > 0:
-                self._marker_pids[iC] = np.delete( self._marker_pids[iC], dpts(marker_pids) )
-                self._marker_points[iC] = self._embedding[self._marker_pids[iC], :] if len( self._marker_pids[iC] ) > 0 else self.empty_pointset
+        if self._marker_pids is not None:
+            dpts = np.vectorize(lambda x: x in pids)
+            for iC, marker_pids in enumerate( self._marker_pids ):
+                if len( marker_pids ) > 0:
+                    self._marker_pids[iC] = np.delete( self._marker_pids[iC], dpts(marker_pids) )
+                    self._marker_points[iC] = self._embedding[self._marker_pids[iC], :] if len( self._marker_pids[iC] ) > 0 else self.empty_pointset
 
     def clear_points(self, icid: int, **kwargs ):
-        pids = kwargs.get('pids', None )
-        print( f"POINTS.clear: cid={icid}, pids={pids}")
-        if pids is None:
-            self._marker_points[icid] = self.empty_pointset
-            self._marker_pids[icid] = self.empty_pids
-        else:
-            dpts = np.vectorize( lambda x: x in pids )
-            dmask = dpts( self._marker_pids[icid] )
-#            print( f"clear_points.Mask: {self._marker_pids[icid]} -> {dmask}" )
-            self._marker_pids[icid]  = np.delete( self._marker_pids[icid], dmask )
-            self._marker_points[ icid ] = self._embedding[ self._marker_pids[icid], :] if len( self._marker_pids[icid] ) > 0 else self.empty_pointset
-#            print(f"clear_points: reduced marker_pids = {self._marker_pids[icid]} -> points = {self._marker_points[ icid ]}")
+        if self._marker_pids is not None:
+            pids = kwargs.get('pids', None )
+            print( f"POINTS.clear: cid={icid}, pids={pids}")
+            if pids is None:
+                self._marker_points[icid] = self.empty_pointset
+                self._marker_pids[icid] = self.empty_pids
+            else:
+                dpts = np.vectorize( lambda x: x in pids )
+                dmask = dpts( self._marker_pids[icid] )
+    #            print( f"clear_points.Mask: {self._marker_pids[icid]} -> {dmask}" )
+                self._marker_pids[icid]  = np.delete( self._marker_pids[icid], dmask )
+                self._marker_points[ icid ] = self._embedding[ self._marker_pids[icid], :] if len( self._marker_pids[icid] ) > 0 else self.empty_pointset
+    #            print(f"clear_points: reduced marker_pids = {self._marker_pids[icid]} -> points = {self._marker_points[ icid ]}")
 
     @property
     def point_sets(self):
+        self.initialize_markers()
         return [ self._points ] + self._binned_points + self._marker_points[::-1]
 
     def gui(self, **kwargs ):
@@ -133,3 +147,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
             self._gui = view( point_sets = self.point_sets, point_set_sizes=ptsizes, point_set_colors=ptcolors, background=[0,0,0] )
             self._gui.layout = { 'width': 'auto', 'flex': '1 1 auto' }
         return self._gui
+
+    def refresh(self):
+        self._wGui = None
+        self.initialize_points()

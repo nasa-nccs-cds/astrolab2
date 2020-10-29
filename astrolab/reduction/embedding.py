@@ -32,7 +32,7 @@ class ReductionManager(tlc.SingletonConfigurable,AstroSingleton):
         self._state = self.UNDEF
         self._samples_coord = None
 
-    def reduce(self, inputs: np.ndarray, reduction_method: str, ndim: int, nepochs: int = 1  ) -> np.ndarray:
+    def reduce(self, inputs: np.ndarray, reduction_method: str, ndim: int, nepochs: int = 1 ) -> np.ndarray:
         if reduction_method.lower() == "autoencoder": return self.autoencoder_reduction( inputs, ndim, nepochs )
 
     def xreduce(self, inputs: xa.DataArray, reduction_method: str, ndim: int ) -> xa.DataArray:
@@ -80,7 +80,6 @@ class ReductionManager(tlc.SingletonConfigurable,AstroSingleton):
         autoencoder = Model(inputs=[inputlayer], outputs=[decoded])
         encoder = Model(inputs=[inputlayer], outputs=[encoded])
         autoencoder.compile(loss='mse', optimizer='rmsprop')
-
         autoencoder.fit( encoder_input, encoder_input, epochs=epochs, batch_size=256, shuffle=True )
         return  encoder.predict( encoder_input )
 

@@ -263,6 +263,10 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
         wTab.children = self._tables
         return wTab
 
+    def refresh(self):
+        self._wGui = None
+        self._tables: List[qgrid.QgridWidget] = []
+
     def _handle_key_event(self, event: Dict ):
         print( f" ################## handle_key_event: {event}  ################## ################## ##################" )
 

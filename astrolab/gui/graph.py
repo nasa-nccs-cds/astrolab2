@@ -85,6 +85,9 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
             self._wGui = self._createGui( **kwargs )
         return self._wGui
 
+    def refresh(self):
+        self._wGui = None
+
     def current_graph(self) -> JbkGraph:
         return self._graphs[ self._wGui.selected_index ]
 

@@ -53,8 +53,6 @@ class Action:
     def spec(self):
         return dict( atype=self.type, source=self.source , pids=self.pids, cid=self.cid, **self.args )
 
-
-
 class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
 
     def __init__(self, **kwargs):
@@ -174,6 +172,9 @@ class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
     def clearMarkers(self):
         self._markers = []
         self.initLabelsData()
+
+    def refresh(self):
+        self.clearMarkers()
 
     def addMarker(self, marker: Marker ):
         self.clearTransient()

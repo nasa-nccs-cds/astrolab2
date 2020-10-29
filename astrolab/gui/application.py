@@ -83,6 +83,17 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         if embed: ActionsPanel.instance().embed()
         return gui
 
+    def refresh(self):
+        from astrolab.gui.graph import GraphManager
+        from astrolab.gui.points import PointCloudManager
+        from astrolab.gui.table import TableManager
+        from astrolab.model.labels import LabelsManager
+        TableManager.instance().refresh()
+        GraphManager.instance().refresh()
+        PointCloudManager.instance().refresh()
+        LabelsManager.instance().refresh()
+        print( "Refreshed Application")
+
     def __delete__(self, instance):
         self.save_config()
 
