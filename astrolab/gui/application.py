@@ -9,9 +9,8 @@ from astrolab.model.base import AstroSingleton
 class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
 
     HOME = os.path.dirname( os.path.dirname( os.path.dirname(os.path.realpath(__file__)) ) )
-    name = tl.Unicode('astrolab').tag(config=True)
-    config_file = tl.Unicode().tag(config=True)
-    table_cols = tl.List( tl.Unicode, ["target_names", "obsids"], 1, 100 )
+    name = tl.Unicode('astrolab').tag(config=True,sync=True)
+    config_file = tl.Unicode().tag(config=True,sync=True)
 
     @tl.default('config_file')
     def _default_config_file(self):
@@ -69,8 +68,8 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         graphManager = GraphManager.instance()
         pointCloudManager = PointCloudManager.instance()
 
-        table = tableManager.gui(cols=self.table_cols)
-        graph = graphManager.gui(mdata=self.table_cols)
+        table = tableManager.gui()
+        graph = graphManager.gui()
         points = pointCloudManager.instance().gui()
 
         tableManager.add_selection_listerner(graphManager.on_selection)
@@ -93,6 +92,7 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         GraphManager.instance().refresh()
         PointCloudManager.instance().refresh()
         LabelsManager.instance().refresh()
+        self.save_config()
         print( "Refreshed Application")
 
     def __delete__(self, instance):

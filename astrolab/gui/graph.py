@@ -24,6 +24,7 @@ class JbkGraph:
         ))
         self.fig = figure( title=self.title, height=300, width=1000, background_fill_color='#efefef' )
         self._r = self.fig.multi_line( 'xs', 'ys', source=self._source, line_color=linear_cmap('cmap', "Turbo256", 0, 255), line_width=1.5, alpha=0.8 )
+        print(f"Creating BokehModel; x0 shape = {self.x[0].shape},  y0 shape = {self.y[0].shape}")
         self._model = jbk.BokehModel( self.fig, layout = ip.Layout( width= 'auto', height= 'auto' ) )
         print( f"BokehModel: {self._model.keys}" )
 
@@ -37,7 +38,8 @@ class JbkGraph:
             project_data: xa.Dataset = DataManager.instance().loadCurrentProject()
             cls._x: np.ndarray = project_data["plot-x"].values
             cls._ploty: np.ndarray = project_data["plot-y"].values
-            cls._mdata: List[np.ndarray] = [ project_data[mdv].values for mdv in kwargs.get("mdata", []) ]
+            table_cols = DataManager.instance().table_cols
+            cls._mdata: List[np.ndarray] = [ project_data[mdv].values for mdv in table_cols ]
 
     def select_items(self, idxs: List[int] ):
         self._selected_pids = idxs

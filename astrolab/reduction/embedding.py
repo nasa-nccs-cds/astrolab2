@@ -12,11 +12,11 @@ import traitlets.config as tlc
 from astrolab.model.base import AstroSingleton
 
 class ReductionManager(tlc.SingletonConfigurable,AstroSingleton):
-    init = tl.Unicode("random").tag(config=True)
-    nepochs = tl.Int( 100 ).tag(config=True)
-    alpha = tl.Float( 0.25 ).tag(config=True)
-    ndim = tl.Int( 3 ).tag(config=True)
-    target_weight = tl.Float( 0.5 ).tag(config=True)
+    init = tl.Unicode("random").tag(config=True,sync=True)
+    nepochs = tl.Int( 100 ).tag(config=True,sync=True)
+    alpha = tl.Float( 0.25 ).tag(config=True,sync=True)
+    ndim = tl.Int( 3 ).tag(config=True,sync=True)
+    target_weight = tl.Float( 0.5 ).tag(config=True,sync=True)
 
     UNDEF = -1
     INIT = 0

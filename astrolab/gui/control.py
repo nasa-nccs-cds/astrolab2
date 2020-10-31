@@ -41,7 +41,7 @@ class ActionsPanel(tlc.SingletonConfigurable, AstroSingleton):
         buttonBox =  ipw.HBox( list(self._buttons.values()) )
         buttonBox.layout = ipw.Layout( width = "100%" )
         classes: ipw.DOMWidget = LabelsManager.instance().gui()
-        gui = ipw.VBox([buttonBox, classes], layout = ipw.Layout( width="100%", flex='0 0 90px', border= '2px solid firebrick' )  )
+        gui = ipw.VBox([ classes, buttonBox ], layout = ipw.Layout( width="100%", justify_content="space-between", flex='0 0 90px', border= '2px solid firebrick' )  )
         return gui
 
     def embed(self):

@@ -34,13 +34,13 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
     def init(self, **kwargs):
         catalog: Dict[str,np.ndarray] = kwargs.get( 'catalog', None )
         project_data: xa.Dataset = DataManager.instance().loadCurrentProject()
-        table_cols = kwargs.get('cols', project_data.variables.keys())
+        table_cols = DataManager.instance().table_cols
         if catalog is None:  catalog = { tcol: project_data[tcol].values for tcol in table_cols }
         nrows = catalog[table_cols[0]].shape[0]
         self._dataFrame: pd.DataFrame = pd.DataFrame( catalog, dtype='U', index=pd.Int64Index( range(nrows), name="Index" ) )
         self._cols = list(catalog.keys()) + [ "Class" ]
         self._class_map = np.zeros( nrows, np.int32 )
-        self._flow_class_map = np.zeros(nrows, np.int32)
+        self._flow_class_map = np.zeros( nrows, np.int32 )
 
     def add_selection_listerner( self, listener: Callable[[Dict],None] ):
         self._selection_listeners.append( listener )

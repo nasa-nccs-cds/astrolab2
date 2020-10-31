@@ -12,15 +12,16 @@ import traitlets.config as tlc
 from astrolab.model.base import AstroSingleton
 
 class DataManager(tlc.SingletonConfigurable,AstroSingleton):
-    reduce_method = tl.Unicode("Autoencoder").tag(config=True)
-    reduce_nepochs = tl.Int( 2 ).tag(config=True)
+    reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)
+    reduce_nepochs = tl.Int( 2 ).tag(config=True,sync=True)
     cache_dir = tl.Unicode("~/Development/Cache").tag(config=True)
     data_dir = tl.Unicode("~/Development/Data").tag(config=True)
-    dataset = tl.Unicode("NONE").tag(config=True)
-    model_dims = tl.Int(16).tag(config=True)
-    mode_index = tl.Int(0).tag(config=True)
-    subsample = tl.Int( 5 ).tag(config=True)
+    dataset = tl.Unicode("NONE").tag(config=True,sync=True)
+    model_dims = tl.Int(16).tag(config=True,sync=True)
+    mode_index = tl.Int(0).tag(config=True,sync=True)
+    subsample = tl.Int( 5 ).tag(config=True,sync=True)
     MODES = [ "swift", "tess" ]
+    DIRECTORY = dict( swift=["target_names", "obsids"], tess=[ 'tics', "camera", "chip", "dec", 'ra', 'tmag' ] )
 
     def __init__(self, **kwargs):
         super(DataManager, self).__init__(**kwargs)
@@ -33,12 +34,16 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
             self._mode_data_managers[iTab] = ModeDataManager(self, mode)
 
     @property
-    def mode(self):
+    def mode(self) -> str:
         return self.MODES[ self.mode_index ]
 
     @property
-    def mode_data_manager(self):
+    def mode_data_manager(self) -> "ModeDataManager":
         return self._mode_data_managers[ self.mode_index ]
+
+    @property
+    def table_cols(self) -> List:
+        return self.DIRECTORY[ self.mode ]
 
     def select_dataset(self, dset: str ):
         self.dataset = dset
@@ -211,7 +216,6 @@ class ModeDataManager:
         return [ Path(f).stem for f in files ]
 
     def loadCurrentProject(self) -> xa.Dataset:
-        self.select_dataset()
         return self.loadDataset( self.dm.dataset )
 
     @property
