@@ -83,12 +83,12 @@ class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
         self._selected_class = iclass
         for iB, button in enumerate(self._buttons):
             if iB == self._selected_class:  button.layout = {'border': '3px solid #FFFF00'}
-            else:                           button.layout = {'border': '1px solid #000000'}
+            else:                           button.layout = {'border': '1px solid darkkhaki'}
 
     def gui( self ) -> ipw.DOMWidget:
         if self.wSelectedClass is None:
             for iC, (color, label) in enumerate(zip( self._colors, self._labels )):
-                button = ipw.Button( description=label, layout=ipw.Layout( flex='1 1 auto', height="auto")  )
+                button = ipw.Button( description=label, layout=ipw.Layout( flex='1 1 auto', height="auto"), border= '1px solid dimgrey'  )
                 button.style.button_color = color
                 button.on_click( partial( self.set_selected_class, iC ) )
                 self._buttons.append( button )

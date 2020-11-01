@@ -11,25 +11,25 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
     HOME = os.path.dirname( os.path.dirname( os.path.dirname(os.path.realpath(__file__)) ) )
     name = tl.Unicode('astrolab').tag(config=True,sync=True)
     config_file = tl.Unicode().tag(config=True,sync=True)
+    custom_theme = False
 
     @tl.default('config_file')
     def _default_config_file(self):
         return os.path.join( os.path.expanduser("~"), "." + self.name, "configuration.py" )
 
-    def __init__(self, mode: str = None, **kwargs ):
+    def __init__(self,  **kwargs ):
         from astrolab.data.manager import DataManager
         super(Astrolab, self).__init__( **kwargs )
-        self._mode = mode if mode is not None else DataManager.instance().mode
+        self._mode = DataManager.instance().mode
 
     @property
     def mode(self):
         return self._mode
 
     def configure(self):
-        app = tlc.Application.instance()
         if os.path.isfile( self.config_file ):
             print(f"Loading config file: {self.config_file}")
-            app.load_config_file( self.config_file )
+ #           self.load_config_file( self.config_file )
 
     def save_config(self):
         conf_txt = AstroSingleton.generate_config_file()
@@ -49,18 +49,22 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
     def process_menubar_action(self, mname, dname, op, b ):
         print(f" process_menubar_action.on_value_change: {mname}.{dname} -> {op}")
 
-    def gui( self, embed: bool = False, customTheme = False ):
-        if customTheme:
-            from IPython.display import display, HTML
-            theme_file = os.path.join( self.HOME, "themes", "astrolab.css" )
+    @classmethod
+    def set_astrolab_theme(cls):
+        from IPython.display import display, HTML
+        if cls.custom_theme:
+            theme_file = os.path.join( cls.HOME, "themes", "astrolab.css" )
             with open( theme_file ) as f:
                 css = f.read().replace(';', ' !important;')
             display(HTML('<style type="text/css">%s</style>Customized changes loaded.' % css))
 
+    def gui( self, embed: bool = False ):
         from astrolab.gui.graph import GraphManager
         from astrolab.gui.points import PointCloudManager
         from astrolab.gui.table import TableManager
         from astrolab.gui.control import ActionsPanel
+
+        self.set_astrolab_theme()
         self.configure()
         css_border = '1px solid blue'
 

@@ -42,6 +42,6 @@ class ToggleButton:
 
     def gui(self):
         if self._gui == None:
-            self._gui = widgets.Button( disabled=False, icon=self._icons[0], tooltip=self._tooltips[0], layout=self._button_layout )
+            self._gui = widgets.Button( disabled=False, icon=self._icons[0], tooltip=self._tooltips[0], layout=self._button_layout, border= '1px solid dimgrey'  )
             self._gui.on_click( self._on_button_click)
         return self._gui

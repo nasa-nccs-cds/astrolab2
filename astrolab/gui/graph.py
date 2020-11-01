@@ -8,7 +8,7 @@ import xarray as xa
 import numpy as np
 from astrolab.data.manager import DataManager
 from bokeh.models import ColumnDataSource
-import ipywidgets as widgets
+import ipywidgets as ipw
 import traitlets.config as tlc
 from astrolab.model.base import AstroSingleton
 
@@ -79,11 +79,11 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
     def __init__( self, **kwargs ):
         super(GraphManager, self).__init__( **kwargs )
         output_notebook()
-        self._wGui: widgets.Tab() = None
+        self._wGui: ipw.Tab() = None
         self._graphs: List[JbkGraph] = []
         self._ngraphs = kwargs.get( 'ngraphs', 8)
 
-    def gui(self, **kwargs ) -> widgets.Tab():
+    def gui(self, **kwargs ) -> ipw.Tab():
         if self._wGui is None:
             self._wGui = self._createGui( **kwargs )
         return self._wGui
@@ -101,11 +101,12 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
         current_graph.select_items( pids )
         current_graph.plot()
 
-    def _createGui( self, **kwargs ) -> widgets.Tab():
-        wTab = widgets.Tab( layout = ip.Layout( width='auto', flex='0 0 350px' ) )
-        self._graphs = [ JbkGraph( **kwargs ) for iG in range(self._ngraphs) ]
+    def _createGui( self, **kwargs ) -> ipw.Tab():
+        wTab = ipw.Tab( layout = ip.Layout( width='auto', flex='0 0 350px' ) )
+        for iG in range(self._ngraphs):
+            self._graphs.append( JbkGraph( **kwargs ) )
+            wTab.set_title(iG, str(iG))
         wTab.children = [ g.gui() for g in self._graphs ]
-        for iG in range(self._ngraphs): wTab.set_title(iG, str(iG))
         return wTab
 
     def on_selection(self, selection_event: Dict ):

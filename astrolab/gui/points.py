@@ -79,6 +79,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         lmgr = LabelsManager.instance()
         icid: int = cid if cid > 0 else lmgr.current_cid
         self.clear_pids( pids )
+        self.clear_points(0)
         self._marker_pids[icid] = np.append( self._marker_pids[icid], pids )
         marked_points: np.ndarray = self._embedding[ self._marker_pids[icid], : ]
 #        print( f"  ***** POINTS- mark_points[{icid}], #pids = {len(pids)}, #points = {marked_points.shape[0]}")
@@ -110,7 +111,7 @@ class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
         LabelsManager.instance().addAction( "color", "points" )
         self.update_plot()
 
-    def clear_pids(self, pids: List[int], **kwargs):
+    def clear_pids(self, pids: np.ndarray, **kwargs):
         if self._marker_pids is not None:
             dpts = np.vectorize(lambda x: x in pids)
             for iC, marker_pids in enumerate( self._marker_pids ):

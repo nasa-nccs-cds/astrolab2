@@ -35,14 +35,16 @@ class AstroSingleton:
 
     @classmethod
     def generate_config_file( cls ):
-        """generate default config file from Configurables"""
+        trait_values: Dict = {}
+        for clss in cls.config_classes:
+            cfg_traits = clss.class_traits(config=True).keys()
+            instance: tlc.SingletonConfigurable = clss.instance()
+            cname = f"c.{clss.__name__}."
+            cfg_trait_values = { cname+key: value for key,value in instance.trait_values().items() if key in cfg_traits }
+            trait_values.update( cfg_trait_values )
         lines = ['']
- #       cfg_classes = cls.config_classes
-        cfg_classes = list( cls._classes_with_config_traits())
- #       print( f"generate_config_file, classes = {cls.config_classes} {cfg_classes}")
-        for clss in cfg_classes:
-            try:     lines.append( clss.class_config_section(cfg_classes) )
-            except:  lines.append(clss.class_config_section())
+        for name, value in trait_values.items():
+            lines.append( f"{name} = {value}")
         return '\n'.join(lines)
 
     @classmethod

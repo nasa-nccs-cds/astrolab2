@@ -53,7 +53,9 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
         self.mode_index = self._wModeTabs.selected_index
 
     def gui( self, **kwargs ) -> ip.Tab():
+        from astrolab.gui.application import Astrolab
         if self._wModeTabs is None:
+            Astrolab.set_astrolab_theme()
             mode_tabs = []
             self._wModeTabs = ip.Tab( selected_index = self.mode_index, layout = ip.Layout( width='auto', height='auto' ) )
             for iTab, dmgr in self._mode_data_managers.items():
@@ -140,22 +142,23 @@ class ModeDataManager:
 
     def select_dataset(self, *args ):
         from astrolab.gui.application import Astrolab
+        self.dm.select_current_mode()
         if self.dm.dataset != self._dset_selection.value:
             print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dm.dataset}'")
             self.dm.select_dataset( self._dset_selection.value )
-            Astrolab.instance(self.mode).refresh()
+            Astrolab.instance().refresh()
 
     def getSelectionPanel(self ) -> ip.HBox:
         dsets: List[str] = self.getDatasetList()
         self._dset_selection: ip.Select = ip.Select( options = dsets, description='Datasets:',disabled=False )
         if len( dsets ) > 0: self._dset_selection.value = dsets[0]
-        load: ip.Button = ip.Button( description="Load")
+        load: ip.Button = ip.Button( description="Load", border= '1px solid dimgrey')
         load.on_click( self.select_dataset )
         filePanel: ip.HBox = ip.HBox( [self._dset_selection, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return filePanel
 
     def getCreationPanel(self) -> ip.HBox:
-        load: ip.Button = ip.Button( description="Create", layout=ip.Layout( flex='1 1 auto' ) )
+        load: ip.Button = ip.Button( description="Create", layout=ip.Layout( flex='1 1 auto' ), border= '1px solid dimgrey' )
         self._model_dims_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(3,50), description='Model Dimension:', value=self.dm.model_dims, layout=ip.Layout( width="auto" ),
                                                    continuous_update=True, orientation='horizontal', readout=True, disabled=False  )
 
