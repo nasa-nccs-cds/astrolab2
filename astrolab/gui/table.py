@@ -156,6 +156,7 @@ class TableManager(tlc.SingletonConfigurable,AstroSingleton):
 
     def is_block_selection( self, event: Dict ) -> bool:
         old, new = event['old'], event['new']
+        print(   f"  ------->  is_block_selection: old = {old}, new = {new}"  )
         if (len(old) == 1) and (new[-1] == old[ 0]) and ( len(new) == (new[-2]-new[-1]+1)): return True
         if (len(old) >  1) and (new[-1] == old[-1]) and ( len(new) == (new[-2]-new[-1]+1)): return True
         return False

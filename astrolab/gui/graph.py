@@ -39,6 +39,7 @@ class JbkGraph:
             cls._x: np.ndarray = project_data["plot-x"].values
             cls._ploty: np.ndarray = project_data["plot-y"].values
             table_cols = DataManager.instance().table_cols
+            print( f"           &&&&   JbkGraph init, using cols {table_cols} from {list(project_data.variables.keys())}" )
             cls._mdata: List[np.ndarray] = [ project_data[mdv].values for mdv in table_cols ]
 
     def select_items(self, idxs: List[int] ):
@@ -50,7 +51,7 @@ class JbkGraph:
         self.fig.title.text = self.title
         self._source.data.update( ys = y, xs=self.x, cmap = np.random.randint(0,255,nlines) )
         self.fig.y_range.update( start=yr[0], end=yr[1] )
-        print( f"  **** GRAPH:plot-> title={self.title}, nlines={nlines}, y0[:10] = {y[0][:10]}, x[:10] = {self.x[:10]}")
+        print( f"           &&&&   GRAPH:plot-> title={self.title}, nlines={nlines}, y0[:10] = {y[0][:10]}, x[:10] = {self.x[:10]}")
 
     @property
     def x(self) -> List[ np.ndarray ]:
@@ -88,12 +89,14 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
         return self._wGui
 
     def refresh(self):
+        print(f"           &&&&   GraphManager refresh ")
         self._wGui = None
 
     def current_graph(self) -> JbkGraph:
         return self._graphs[ self._wGui.selected_index ]
 
     def plot_graph( self, pids: List[int] ):
+        print(f"           &&&&   plot_graph[{self._wGui.selected_index}]: pids = {pids} ")
         current_graph: JbkGraph = self.current_graph()
         current_graph.select_items( pids )
         current_graph.plot()
@@ -108,5 +111,5 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
     def on_selection(self, selection_event: Dict ):
         selection = selection_event['pids']
         if len( selection ) > 0:
-            print(f" GRAPH.on_selection: nitems = {len(selection)}, pid={selection[0]}")
+            print(f"           &&&&   GRAPH.on_selection: nitems = {len(selection)}, pid={selection[0]}")
             self.plot_graph( selection )
