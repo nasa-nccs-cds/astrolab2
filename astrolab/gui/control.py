@@ -29,6 +29,7 @@ class ActionsPanel(tlc.SingletonConfigurable, AstroSingleton):
         elif task == "spread": tmgr.spread_selection()
         elif task == "clear":  tmgr.clear_current_class()
         elif task == "undo":   tmgr.undo_action()
+
         elif task == "distance": tmgr.display_distance()
 
     def _createGui( self, **kwargs ) -> ipw.Box:

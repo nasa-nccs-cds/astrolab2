@@ -39,7 +39,7 @@ class JbkGraph:
             cls._x: np.ndarray = project_data["plot-x"].values
             cls._ploty: np.ndarray = project_data["plot-y"].values
             table_cols = DataManager.instance().table_cols
-            print( f"           &&&&   JbkGraph init, using cols {table_cols} from {list(project_data.variables.keys())}" )
+            print( f"           &&&&   JbkGraph init, using cols {table_cols} from {list(project_data.variables.keys())}, ploty shape = {cls._ploty.shape}" )
             cls._mdata: List[np.ndarray] = [ project_data[mdv].values for mdv in table_cols ]
 
     def select_items(self, idxs: List[int] ):
@@ -51,11 +51,12 @@ class JbkGraph:
         self.fig.title.text = self.title
         self._source.data.update( ys = y, xs=self.x, cmap = np.random.randint(0,255,nlines) )
         self.fig.y_range.update( start=yr[0], end=yr[1] )
-        print( f"           &&&&   GRAPH:plot-> title={self.title}, nlines={nlines}, y0[:10] = {y[0][:10]}, x[:10] = {self.x[:10]}")
+        print( f"           &&&&   GRAPH:plot-> title={self.title}, nlines={nlines}, y0 shape = {y[0].shape}, x0 shape = {self.x[0].shape}")
 
     @property
     def x(self) -> List[ np.ndarray ]:
-        return [ self._x ] * len( self._selected_pids )
+        if self._x.ndim == 1:   return [ self._x ] * len( self._selected_pids )
+        else:                   return [ self._x[ pid ] for pid in self._selected_pids ]
 
     @property
     def y( self ) -> List[ np.ndarray ]:
@@ -102,7 +103,7 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
         current_graph.plot()
 
     def _createGui( self, **kwargs ) -> ipw.Tab():
-        wTab = ipw.Tab( layout = ip.Layout( width='auto', flex='0 0 350px' ) )
+        wTab = ipw.Tab( layout = ip.Layout( width='auto', flex='0 0 280px' ) )
         for iG in range(self._ngraphs):
             self._graphs.append( JbkGraph( **kwargs ) )
             wTab.set_title(iG, str(iG))

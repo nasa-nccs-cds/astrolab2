@@ -80,7 +80,7 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         tableManager.add_selection_listerner(pointCloudManager.on_selection)
         actionsPanel = ActionsPanel.instance().gui()
 
-        control = ipw.VBox([actionsPanel, table], layout=ipw.Layout( flex='0 0 500px', border=css_border) )
+        control = ipw.VBox([actionsPanel, table], layout=ipw.Layout( flex='0 0 600px', border=css_border) )
         plot = ipw.VBox([points, graph], layout=ipw.Layout( flex='1 1 auto', border=css_border) )
         gui = ipw.HBox([control, plot])
         self.save_config()

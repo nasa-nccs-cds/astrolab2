@@ -184,7 +184,7 @@ class ModeDataManager:
         input_file_path = os.path.expanduser( os.path.join( self.dm.data_dir, "astrolab", self.mode, f"{input_file_id}.pkl") )
         try:
             if os.path.isfile(input_file_path):
-                print(f"Reading unstructured {input_file_id} data from file {input_file_path}")
+                print(f"Reading unstructured {input_file_id} data from file {input_file_path}, dims = {dims}")
                 with open(input_file_path, 'rb') as f:
                     result = pickle.load(f)
                     if isinstance( result, np.ndarray ):
