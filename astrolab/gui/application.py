@@ -27,9 +27,13 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         return self._mode
 
     def configure(self):
+        from traitlets.config.loader import load_pyconfig_files
         if os.path.isfile( self.config_file ):
             print(f"Loading config file: {self.config_file}")
- #           self.load_config_file( self.config_file )
+            (dir, fname) = os.path.split( self.config_file )
+            config = load_pyconfig_files( [ fname ], dir )
+            for clss in self.config_classes:
+                clss.instance().update_config(config)
 
     def save_config(self):
         conf_txt = AstroSingleton.generate_config_file()

@@ -103,7 +103,7 @@ class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
         current_graph.plot()
 
     def _createGui( self, **kwargs ) -> ipw.Tab():
-        wTab = ipw.Tab( layout = ip.Layout( width='auto', flex='0 0 280px' ) )
+        wTab = ipw.Tab( layout = ip.Layout( width='auto', flex='0 0 330px' ) )
         for iG in range(self._ngraphs):
             self._graphs.append( JbkGraph( **kwargs ) )
             wTab.set_title(iG, str(iG))

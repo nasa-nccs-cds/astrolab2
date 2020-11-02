@@ -37,11 +37,12 @@ class AstroSingleton:
     def generate_config_file( cls ):
         trait_values: Dict = {}
         for clss in cls.config_classes:
-            cfg_traits = clss.class_traits(config=True).keys()
             instance: tlc.SingletonConfigurable = clss.instance()
             cname = f"c.{clss.__name__}."
-            cfg_trait_values = { cname+key: value for key,value in instance.trait_values().items() if key in cfg_traits }
-            trait_values.update( cfg_trait_values )
+            for tid, trait in instance.class_traits(config=True).items():
+                tval = getattr( instance, tid )
+                if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
+                trait_values[cname+tid]  = tval
         lines = ['']
         for name, value in trait_values.items():
             lines.append( f"{name} = {value}")
