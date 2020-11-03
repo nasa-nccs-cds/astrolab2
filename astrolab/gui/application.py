@@ -9,13 +9,8 @@ from astrolab.model.base import AstroSingleton
 class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
 
     HOME = os.path.dirname( os.path.dirname( os.path.dirname(os.path.realpath(__file__)) ) )
-    name = tl.Unicode('astrolab').tag(config=True,sync=True)
-    config_file = tl.Unicode().tag(config=True,sync=True)
+    name = tl.Unicode('astrolab').tag(config=True)
     custom_theme = False
-
-    @tl.default('config_file')
-    def _default_config_file(self):
-        return os.path.join( os.path.expanduser("~"), "." + self.name, "configuration.py" )
 
     def __init__(self,  **kwargs ):
         from astrolab.data.manager import DataManager
@@ -25,30 +20,28 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
     @property
     def mode(self):
         return self._mode
+    
+    def config_file(self, mode: str = None ):
+        if mode is None: mode = self._mode
+        return os.path.join(os.path.expanduser("~"), "." + self.name, mode + ".py")
 
     def configure(self):
         from traitlets.config.loader import load_pyconfig_files
-        if os.path.isfile( self.config_file ):
-            print(f"Loading config file: {self.config_file}")
-            (dir, fname) = os.path.split( self.config_file )
+        if os.path.isfile(self.config_file()):
+            print(f"Loading config file: {self.config_file()}")
+            (dir, fname) = os.path.split(self.config_file())
             config = load_pyconfig_files( [ fname ], dir )
             for clss in self.config_classes:
                 clss.instance().update_config(config)
 
     def save_config(self):
-        conf_txt = AstroSingleton.generate_config_file()
-        cfg_dir = os.path.dirname(os.path.realpath( self.config_file ) )
-        os.makedirs( cfg_dir, exist_ok=True )
-        with open( self.config_file, "w" ) as cfile_handle:
-            print( f"Writing config file: {self.config_file}")
-            cfile_handle.write( conf_txt )
-
-    def getControlPanel( self ) -> ipw.DOMWidget:
-        from astrolab.gui.control import ActionsPanel
-        file: ipw.HBox = self.getFilePanel()
-        actions: ipw.HBox = ActionsPanel.instance().gui()
-        gui = ipw.VBox([file, actions], layout = ipw.Layout( width="100%" )  )
-        return gui
+        conf_dict = AstroSingleton.generate_config_file()
+        for mode, conf_txt in conf_dict.items():
+            cfg_file = os.path.realpath( self.config_file(mode) )
+            os.makedirs( os.path.dirname(cfg_file), exist_ok=True )
+            with open( cfg_file, "w" ) as cfile_handle:
+                print( f"Writing config file: {cfg_file}")
+                cfile_handle.write( conf_txt )
 
     def process_menubar_action(self, mname, dname, op, b ):
         print(f" process_menubar_action.on_value_change: {mname}.{dname} -> {op}")

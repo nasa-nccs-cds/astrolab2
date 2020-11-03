@@ -12,16 +12,10 @@ import traitlets.config as tlc
 from astrolab.model.base import AstroSingleton
 
 class DataManager(tlc.SingletonConfigurable,AstroSingleton):
-    reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)
-    reduce_nepochs = tl.Int( 2 ).tag(config=True,sync=True)
-    cache_dir = tl.Unicode("~/Development/Cache").tag(config=True)
-    data_dir = tl.Unicode("~/Development/Data").tag(config=True)
     dataset = tl.Unicode("NONE").tag(config=True,sync=True)
-    model_dims = tl.Int(16).tag(config=True,sync=True)
     mode_index = tl.Int(0).tag(config=True,sync=True)
-    subsample = tl.Int( 5 ).tag(config=True,sync=True)
     MODES = [ "swift", "tess" ]
-    DIRECTORY = dict( swift=["target_names", "obsids"], tess=[ 'tics', "camera", "chip", "dec", 'ra', 'tmag' ] )
+    METAVARS = dict(swift=["target_names", "obsids"], tess=['tics', "camera", "chip", "dec", 'ra', 'tmag'])
 
     def __init__(self, **kwargs):
         super(DataManager, self).__init__(**kwargs)
@@ -34,6 +28,10 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
             self._mode_data_managers[iTab] = ModeDataManager(self, mode)
 
     @property
+    def config_file(self, app_name: str) -> str :
+        return os.path.join( os.path.expanduser("~"), "." + app_name, self.mode + ".py" )
+
+    @property
     def mode(self) -> str:
         return self.MODES[ self.mode_index ]
 
@@ -43,7 +41,7 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
 
     @property
     def table_cols(self) -> List:
-        return self.DIRECTORY[ self.mode ]
+        return self.METAVARS[ self.mode]
 
     def select_dataset(self, dset: str ):
         self.dataset = dset
@@ -70,7 +68,13 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     def loadCurrentProject(self) -> xa.Dataset:
         return self.mode_data_manager.loadCurrentProject()
 
-class ModeDataManager:
+class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
+    model_dims = tl.Int(16).tag(config=True,sync=True)
+    subsample = tl.Int( 5 ).tag(config=True,sync=True)
+    reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)
+    reduce_nepochs = tl.Int( 2 ).tag(config=True,sync=True)
+    cache_dir = tl.Unicode( os.path.expanduser("~/Development/Cache") ).tag(config=True)
+    data_dir = tl.Unicode( os.path.expanduser("~/Development/Data") ).tag(config=True)
 
     def __init__(self, dm: DataManager, mode: str, **kwargs):
         self.datasets = {}
@@ -109,7 +113,7 @@ class ModeDataManager:
         self._progress.value = 0.02
         self.model_dims = self._model_dims_selector.value
         self.subsample = self._subsample_selector.value
-        file_name = f"raw" if self.dm.reduce_method == "None" else f"{self.dm.reduce_method}-{self.model_dims}"
+        file_name = f"raw" if self.reduce_method == "None" else f"{self.reduce_method}-{self.model_dims}"
         if self.subsample > 1: file_name = f"{file_name}-ss{self.subsample}"
         output_file = os.path.join( self.datasetDir, file_name + ".nc" )
 
@@ -124,8 +128,8 @@ class ModeDataManager:
         pspec = input_vars['plot']
         data_vars.update( { f'plot-{vid}': self.getXarray( pspec[vid], xcoords, self.subsample, xdims, norm=pspec.get('norm','')) for vid in [ 'x', 'y' ] } )
         self._progress.value = 0.1
-        if self.dm.reduce_method != "None":
-           reduced_spectra = ReductionManager.instance().reduce( data_vars['embedding'], self.dm.reduce_method, self.model_dims, self.dm.reduce_nepochs )
+        if self.reduce_method != "None":
+           reduced_spectra = ReductionManager.instance().reduce( data_vars['embedding'], self.reduce_method, self.model_dims, self.reduce_nepochs )
            coords = dict( samples=xcoords['samples'], model=np.arange( self.model_dims ) )
            data_vars['reduction'] =  xa.DataArray( reduced_spectra, dims=['samples','model'], coords=coords )
            self._progress.value = 0.8
@@ -157,12 +161,25 @@ class ModeDataManager:
         filePanel: ip.HBox = ip.HBox( [self._dset_selection, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return filePanel
 
-    def getCreationPanel(self) -> ip.HBox:
+    def getConfigPanel(self):
+        from astrolab.reduction.embedding import ReductionManager
+        rm = ReductionManager.instance()
+        apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
+        apply.on_click( self.select_dataset )
+        def handler( param, change ): param = change['new']
+        nepochs_selector: ip.IntSlider = ip.IntSlider( min=50, max=500, description='UMAP nepochs:', value=rm.nepochs, continuous_update=False, layout=ip.Layout( width="auto" ) )
+        nepochs_selector.observe( partial( handler, rm.nepochs ), "value" )
+        alpha_selector: ip.FloatSlider = ip.FloatSlider( min=0.1, max=0.8, step=0.02, description='UMAP alpha:', value=rm.alpha, readout_format=".2f", continuous_update=False, layout=ip.Layout( width="auto" ) )
+        alpha_selector.observe( partial( handler, rm.alpha ), "value" )
+        configPanel: ip.VBox = ip.VBox( [ nepochs_selector, alpha_selector, apply ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
+        return configPanel
+
+    def getCreationPanel(self) -> ip.VBox:
         load: ip.Button = ip.Button( description="Create", layout=ip.Layout( flex='1 1 auto' ), border= '1px solid dimgrey' )
-        self._model_dims_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(3,50), description='Model Dimension:', value=self.dm.model_dims, layout=ip.Layout( width="auto" ),
+        self._model_dims_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(3,50), description='Model Dimension:', value=self.model_dims, layout=ip.Layout( width="auto" ),
                                                    continuous_update=True, orientation='horizontal', readout=True, disabled=False  )
 
-        self._subsample_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(1,50), description='Subsample:', value=self.dm.subsample, layout=ip.Layout( width="auto" ),
+        self._subsample_selector: ip.SelectionSlider = ip.SelectionSlider( options=range(1,50), description='Subsample:', value=self.subsample, layout=ip.Layout( width="auto" ),
                                                    continuous_update=True, orientation='horizontal', readout=True, disabled=False  )
 
         load.on_click( self.prepare_inputs )
@@ -175,13 +192,16 @@ class ModeDataManager:
         wTab = ip.Tab( layout = ip.Layout( width='auto', height='auto' ) )
         selectPanel = self.getSelectionPanel()
         creationPanel = self.getCreationPanel()
-        wTab.children = [ creationPanel, selectPanel ]
+        configPanel = self.getConfigPanel()
+        wTab.children = [ creationPanel, selectPanel, configPanel ]
         wTab.set_title( 0, "Create")
         wTab.set_title( 1, "Select")
+        wTab.set_title( 2, "Configure" )
         return wTab
 
     def getInputFileData(self, input_file_id: str, subsample: int = 1, dims: Tuple[int] = None ) -> np.ndarray:
-        input_file_path = os.path.expanduser( os.path.join( self.dm.data_dir, "astrolab", self.mode, f"{input_file_id}.pkl") )
+        from astrolab.gui.application import Astrolab
+        input_file_path = os.path.expanduser( os.path.join( self.data_dir, Astrolab.instance().name, self.mode, f"{input_file_id}.pkl") )
         try:
             if os.path.isfile(input_file_path):
                 print(f"Reading unstructured {input_file_id} data from file {input_file_path}, dims = {dims}")
@@ -223,6 +243,7 @@ class ModeDataManager:
 
     @property
     def datasetDir(self):
-        dsdir = os.path.join( os.path.expanduser( self.dm.cache_dir ), "astrolab", self.mode )
+        from astrolab.gui.application import Astrolab
+        dsdir = os.path.join( self.cache_dir, Astrolab.instance().name, self.mode )
         os.makedirs( dsdir, exist_ok=True )
         return dsdir

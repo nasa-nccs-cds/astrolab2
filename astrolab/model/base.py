@@ -33,20 +33,29 @@ class AstroSingleton:
     def __init__(self, **kwargs ):
         self.config_classes.append( self.__class__ )
 
+    @property
+    def mode(self):
+        from astrolab.data.manager import DataManager
+        return DataManager.instance().mode
+
     @classmethod
-    def generate_config_file( cls ):
-        trait_values: Dict = {}
+    def generate_config_file( cls ) -> Dict[str,str]:
+        trait_map: Dict = {}
         for clss in cls.config_classes:
             instance: tlc.SingletonConfigurable = clss.instance()
             cname = f"c.{clss.__name__}."
             for tid, trait in instance.class_traits(config=True).items():
                 tval = getattr( instance, tid )
                 if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
+                trait_values = trait_map.setdefault( instance.mode, {} )
                 trait_values[cname+tid]  = tval
-        lines = ['']
-        for name, value in trait_values.items():
-            lines.append( f"{name} = {value}")
-        return '\n'.join(lines)
+        result: Dict = {}
+        for mode, trait_values in trait_map.items():
+            lines = ['']
+            for name, value in trait_values.items():
+                lines.append( f"{name} = {value}")
+            result[ mode ] = '\n'.join(lines)
+        return result
 
     @classmethod
     def _classes_inc_parents(cls):
