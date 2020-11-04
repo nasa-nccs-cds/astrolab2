@@ -56,8 +56,8 @@ def iterate_spread_labels( I: np.ndarray, D: np.ndarray, C: np.ndarray, P: np.nd
 class ActivationFlowManager(tlc.SingletonConfigurable,AstroSingleton):
     nneighbors = tl.Int( 5 ).tag(config=True,sync=True)
 
-    def __init__(self, **kwargs):
-        super(ActivationFlowManager, self).__init__(**kwargs)
+    def __init__(self):
+        super(ActivationFlowManager, self).__init__()
         self.instances = {}
         self.condition = threading.Condition()
 

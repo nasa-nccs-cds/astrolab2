@@ -14,10 +14,10 @@ from astrolab.model.labels import LabelsManager
 import traitlets.config as tlc
 from astrolab.model.base import AstroSingleton
 
-class TableManager(tlc.SingletonConfigurable,AstroSingleton):
+class TableManager(tlc.SingletonConfigurable, AstroSingleton):
 
-    def __init__(self, **kwargs):
-        super(TableManager, self).__init__(**kwargs)
+    def __init__(self):
+        super(TableManager, self).__init__()
         self._wGui: ipw.VBox = None
         self._dataFrame: pd.DataFrame = None
         self._cols: List[str] = None

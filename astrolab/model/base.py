@@ -34,9 +34,10 @@ class AstroSingleton:
         self.config_classes.append( self.__class__ )
 
     @property
-    def mode(self):
-        from astrolab.data.manager import DataManager
-        return DataManager.instance().mode
+    def config_mode(self):
+        return "global"
+
+    def refresh(self): pass
 
     @classmethod
     def generate_config_file( cls ) -> Dict[str,str]:
@@ -47,7 +48,7 @@ class AstroSingleton:
             for tid, trait in instance.class_traits(config=True).items():
                 tval = getattr( instance, tid )
                 if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
-                trait_values = trait_map.setdefault( instance.mode, {} )
+                trait_values = trait_map.setdefault( instance.config_mode, {} )
                 trait_values[cname+tid]  = tval
         result: Dict = {}
         for mode, trait_values in trait_map.items():

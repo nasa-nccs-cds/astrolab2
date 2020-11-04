@@ -77,12 +77,12 @@ class JbkGraph:
 
 class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
 
-    def __init__( self, **kwargs ):
-        super(GraphManager, self).__init__( **kwargs )
+    def __init__( self ):
+        super(GraphManager, self).__init__(  )
         output_notebook()
         self._wGui: ipw.Tab() = None
         self._graphs: List[JbkGraph] = []
-        self._ngraphs = kwargs.get( 'ngraphs', 8)
+        self._ngraphs = 8
 
     def gui(self, **kwargs ) -> ipw.Tab():
         if self._wGui is None:

@@ -53,10 +53,10 @@ class Action:
     def spec(self):
         return dict( atype=self.type, source=self.source , pids=self.pids, cid=self.cid, **self.args )
 
-class LabelsManager(tlc.SingletonConfigurable,AstroSingleton):
+class LabelsManager(tlc.SingletonConfigurable, AstroSingleton):
 
-    def __init__(self, **kwargs):
-        super(LabelsManager, self).__init__(**kwargs)
+    def __init__(self):
+        super(LabelsManager, self).__init__()
         self._colors = None
         self._labels = None
         self.selectedClass = 0

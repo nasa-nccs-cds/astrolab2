@@ -16,24 +16,29 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     mode_index = tl.Int(0).tag(config=True,sync=True)
     MODES = [ "swift", "tess" ]
     METAVARS = dict(swift=["target_names", "obsids"], tess=['tics', "camera", "chip", "dec", 'ra', 'tmag'])
+    name = tl.Unicode('astrolab').tag(config=True)
 
-    def __init__(self, **kwargs):
-        super(DataManager, self).__init__(**kwargs)
+    def __init__(self):
+        super(DataManager, self).__init__()
         self._wModeTabs: ip.Tab = None
         self._init_managers()
 
     def _init_managers(self):
         self._mode_data_managers = {}
         for iTab, mode in enumerate(self.MODES):
-            self._mode_data_managers[iTab] = ModeDataManager(self, mode)
+            self._mode_data_managers[iTab] = ModeDataManager.instance().init(self, mode)
 
-    @property
-    def config_file(self, app_name: str) -> str :
-        return os.path.join( os.path.expanduser("~"), "." + app_name, self.mode + ".py" )
+    def config_file(self, config_mode=None) -> str :
+        if config_mode is None: config_mode = self.mode
+        return os.path.join( os.path.expanduser("~"), "." + self.name, config_mode + ".py" )
 
     @property
     def mode(self) -> str:
         return self.MODES[ self.mode_index ]
+
+    @property
+    def config_mode(self):
+        return "configuration"
 
     @property
     def mode_data_manager(self) -> "ModeDataManager":
@@ -76,17 +81,23 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
     cache_dir = tl.Unicode( os.path.expanduser("~/Development/Cache") ).tag(config=True)
     data_dir = tl.Unicode( os.path.expanduser("~/Development/Data") ).tag(config=True)
 
-    def __init__(self, dm: DataManager, mode: str, **kwargs):
+    def __init__(self):
+        super(ModeDataManager, self).__init__()
         self.datasets = {}
-        self._mode = mode
+        self._mode = None
         self._model_dims_selector: ip.SelectionSlider = None
         self._subsample_selector: ip.SelectionSlider = None
         self._progress = None
         self._dset_selection: ip.Select = None
+        self.dm = None
+
+    def init(self, dm: DataManager, mode: str, **kwargs) -> "ModeDataManager":
+        self._mode = mode
         self.dm = dm
+        return self
 
     @property
-    def mode(self):
+    def config_mode(self):
         return self._mode
 
     @classmethod
@@ -101,12 +112,12 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
         return xa.DataArray( np_data, dims=dims, coords=coords, name=id, attrs=attrs )
 
     def get_input_mdata(self):
-        if self.mode == "swift":
+        if self.config_mode == "swift":
             return dict(embedding='scaled_specs', directory=["target_names", "obsids"], plot=dict(y="specs", x='spectra_x_axis'))
-        elif self.mode == "tess":
+        elif self.config_mode == "tess":
             return dict(embedding='scaled_lcs', directory=['tics', "camera", "chip", "dec", 'ra', 'tmag'], plot=dict(y="lcs", x='times'))
         else:
-            raise Exception( f"Unknown data mode: {self.mode}, should be 'tess' or 'swift")
+            raise Exception( f"Unknown data mode: {self.config_mode}, should be 'tess' or 'swift")
 
     def prepare_inputs( self, *args ):
         self.dm.select_current_mode()
@@ -166,11 +177,12 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
         rm = ReductionManager.instance()
         apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
         apply.on_click( self.select_dataset )
-        def handler( param, change ): param = change['new']
         nepochs_selector: ip.IntSlider = ip.IntSlider( min=50, max=500, description='UMAP nepochs:', value=rm.nepochs, continuous_update=False, layout=ip.Layout( width="auto" ) )
-        nepochs_selector.observe( partial( handler, rm.nepochs ), "value" )
+        def nepochs_handler( event ): rm.nepochs = event['new']; # print( f"Updating parameter 'nepochs' -> {event['new']} ")
+        nepochs_selector.observe( nepochs_handler, "value" )
         alpha_selector: ip.FloatSlider = ip.FloatSlider( min=0.1, max=0.8, step=0.02, description='UMAP alpha:', value=rm.alpha, readout_format=".2f", continuous_update=False, layout=ip.Layout( width="auto" ) )
-        alpha_selector.observe( partial( handler, rm.alpha ), "value" )
+        def alpha_handler(event): rm.alpha = event['new']; #  print(f"Updating parameter 'alpha' -> {event['new']} ")
+        alpha_selector.observe( alpha_handler, "value" )
         configPanel: ip.VBox = ip.VBox( [ nepochs_selector, alpha_selector, apply ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return configPanel
 
@@ -200,8 +212,7 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
         return wTab
 
     def getInputFileData(self, input_file_id: str, subsample: int = 1, dims: Tuple[int] = None ) -> np.ndarray:
-        from astrolab.gui.application import Astrolab
-        input_file_path = os.path.expanduser( os.path.join( self.data_dir, Astrolab.instance().name, self.mode, f"{input_file_id}.pkl") )
+        input_file_path = os.path.expanduser( os.path.join( self.data_dir, self.dm.name, self.config_mode, f"{input_file_id}.pkl") )
         try:
             if os.path.isfile(input_file_path):
                 print(f"Reading unstructured {input_file_id} data from file {input_file_path}, dims = {dims}")
@@ -211,7 +222,7 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
                         if dims is not None and (result.shape[0] == dims[1]) and result.ndim == 1: return result
                         return result[::subsample]
                     elif isinstance( result, list ):
-                        if dims is not None and ( len(result) == dims[1] ): return result
+#                        if dims is not None and ( len(result) == dims[1] ): return result
                         subsampled = [ result[i] for i in range( 0, len(result), subsample ) ]
                         if isinstance( result[0], np.ndarray ):  return np.vstack( subsampled )
                         else:                                    return np.array( subsampled )
@@ -243,7 +254,6 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
 
     @property
     def datasetDir(self):
-        from astrolab.gui.application import Astrolab
-        dsdir = os.path.join( self.cache_dir, Astrolab.instance().name, self.mode )
+        dsdir = os.path.join( self.cache_dir, self.dm.name, self.config_mode )
         os.makedirs( dsdir, exist_ok=True )
         return dsdir

@@ -11,12 +11,12 @@ from astrolab.model.base import AstroSingleton
 
 class ActionsPanel(tlc.SingletonConfigurable, AstroSingleton):
 
-    def __init__(self, **kwargs):
-        super(ActionsPanel, self).__init__(**kwargs)
-        self._wGui: ipw.HBox = None
+    def __init__(self):
+        super(ActionsPanel, self).__init__()
+        self._wGui: ipw.Box = None
         self._buttons = {}
 
-    def gui(self, **kwargs ) -> ipw.HBox:
+    def gui(self, **kwargs ) -> ipw.Box:
         if self._wGui is None:
             self._wGui = self._createGui( **kwargs )
         return self._wGui
@@ -29,7 +29,6 @@ class ActionsPanel(tlc.SingletonConfigurable, AstroSingleton):
         elif task == "spread": tmgr.spread_selection()
         elif task == "clear":  tmgr.clear_current_class()
         elif task == "undo":   tmgr.undo_action()
-
         elif task == "distance": tmgr.display_distance()
 
     def _createGui( self, **kwargs ) -> ipw.Box:

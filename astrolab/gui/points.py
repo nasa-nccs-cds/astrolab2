@@ -13,8 +13,8 @@ from astrolab.model.labels import LabelsManager
 
 class PointCloudManager(tlc.SingletonConfigurable,AstroSingleton):
 
-    def __init__(self, **kwargs):
-        super(PointCloudManager, self).__init__(**kwargs)
+    def __init__(self):
+        super(PointCloudManager, self).__init__()
         self._gui: Viewer = None
         self._n_point_bins = 27
         self.initialize_points()

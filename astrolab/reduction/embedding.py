@@ -32,6 +32,9 @@ class ReductionManager(tlc.SingletonConfigurable,AstroSingleton):
         self._state = self.UNDEF
         self._samples_coord = None
 
+    def refresh(self):
+        self._mapper = {}
+
     def reduce(self, inputs: np.ndarray, reduction_method: str, ndim: int, nepochs: int = 1 ) -> np.ndarray:
         if reduction_method.lower() == "autoencoder": return self.autoencoder_reduction( inputs, ndim, nepochs )
 
