@@ -10,7 +10,7 @@ from astrolab.data.manager import DataManager
 from bokeh.models import ColumnDataSource
 import ipywidgets as ipw
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
 class JbkGraph:
 
@@ -75,7 +75,7 @@ class JbkGraph:
             t = "multiplot"
         return t
 
-class GraphManager(tlc.SingletonConfigurable,AstroSingleton):
+class GraphManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def __init__( self ):
         super(GraphManager, self).__init__(  )

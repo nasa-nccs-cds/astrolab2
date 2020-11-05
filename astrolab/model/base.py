@@ -27,7 +27,7 @@ class Marker:
             return True
         except: return False
 
-class AstroSingleton:
+class AstroConfigurable:
     config_classes = []
 
     def __init__(self, **kwargs ):

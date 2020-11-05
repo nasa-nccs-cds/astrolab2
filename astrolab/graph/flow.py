@@ -7,7 +7,7 @@ from typing import List, Union, Tuple, Optional, Dict
 import os, time, threading, traceback
 import traitlets.config as tlc
 import traitlets as tl
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
 @numba.njit(fastmath=True,
     locals={
@@ -53,7 +53,7 @@ def iterate_spread_labels( I: np.ndarray, D: np.ndarray, C: np.ndarray, P: np.nd
                 C[pid1] = label_spec[1]
                 P[pid1] = PN
 
-class ActivationFlowManager(tlc.SingletonConfigurable,AstroSingleton):
+class ActivationFlowManager(tlc.SingletonConfigurable, AstroConfigurable):
     nneighbors = tl.Int( 5 ).tag(config=True,sync=True)
 
     def __init__(self):

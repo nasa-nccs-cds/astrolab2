@@ -9,9 +9,9 @@ from .umap import UMAP
 from ..model.labels import LabelsManager
 import traitlets as tl
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
-class ReductionManager(tlc.SingletonConfigurable,AstroSingleton):
+class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
     init = tl.Unicode("random").tag(config=True,sync=True)
     nepochs = tl.Int( 100 ).tag(config=True,sync=True)
     alpha = tl.Float( 0.25 ).tag(config=True,sync=True)

@@ -7,9 +7,9 @@ import numpy as np
 import ipywidgets as ipw
 from .points import PointCloudManager
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
-class ActionsPanel(tlc.SingletonConfigurable, AstroSingleton):
+class ActionsPanel(tlc.SingletonConfigurable, AstroConfigurable):
 
     def __init__(self):
         super(ActionsPanel, self).__init__()

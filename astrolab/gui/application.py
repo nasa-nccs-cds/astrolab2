@@ -3,9 +3,9 @@ from IPython.core.debugger import set_trace
 from collections import OrderedDict
 import os, ipywidgets as ipw
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
-class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
+class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
 
     HOME = os.path.dirname( os.path.dirname( os.path.dirname(os.path.realpath(__file__)) ) )
     custom_theme = False
@@ -78,8 +78,8 @@ class Astrolab( tlc.SingletonConfigurable, AstroSingleton ):
         if embed: ActionsPanel.instance().embed()
         return gui
 
-    def refresh(self):
-        for config_class in self.config_classes: config_class.refresh()
+    def refresh_all(self):
+        for config_class in self.config_classes: config_class.instance().refresh()
         self.save_config()
         print( "Refreshed Application")
 

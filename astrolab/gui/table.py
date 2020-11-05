@@ -12,9 +12,9 @@ from .points import PointCloudManager
 from traitlets import traitlets
 from astrolab.model.labels import LabelsManager
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
-class TableManager(tlc.SingletonConfigurable, AstroSingleton):
+class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def __init__(self):
         super(TableManager, self).__init__()

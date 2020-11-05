@@ -9,9 +9,9 @@ from pathlib import Path
 import xarray as xa
 import traitlets as tl
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton
+from astrolab.model.base import AstroConfigurable
 
-class DataManager(tlc.SingletonConfigurable,AstroSingleton):
+class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     dataset = tl.Unicode("NONE").tag(config=True,sync=True)
     mode_index = tl.Int(0).tag(config=True,sync=True)
     MODES = [ "swift", "tess" ]
@@ -26,7 +26,7 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     def _init_managers(self):
         self._mode_data_managers = {}
         for iTab, mode in enumerate(self.MODES):
-            self._mode_data_managers[iTab] = ModeDataManager.instance().init(self, mode)
+            self._mode_data_managers[iTab] = ModeDataManager(self, mode)
 
     def config_file(self, config_mode=None) -> str :
         if config_mode is None: config_mode = self.mode
@@ -51,6 +51,7 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     def select_dataset(self, dset: str ):
         self.dataset = dset
         self.mode_index = self._wModeTabs.selected_index
+        print( f"Setting Dataset parameters, dataset = {self.dataset}, mode_index = {self.mode_index}")
 
     def select_current_mode(self):
         self.mode_index = self._wModeTabs.selected_index
@@ -61,9 +62,10 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
             Astrolab.set_astrolab_theme()
             mode_tabs = []
             self._wModeTabs = ip.Tab( selected_index = self.mode_index, layout = ip.Layout( width='auto', height='auto' ) )
-            for iTab, dmgr in self._mode_data_managers.items():
+            for iTab, mdmgr in self._mode_data_managers.items():
                 self._wModeTabs.set_title( iTab, self.MODES[iTab]  )
-                mode_tabs.append( dmgr.gui() )
+                mode_tabs.append( mdmgr.gui() )
+                print( f"DataManager.gui: add ModeDataManager[{iTab}], mode = {mdmgr.config_mode}, mdmgr id = {id(mdmgr)} ")
             self._wModeTabs.children = mode_tabs
         return self._wModeTabs
 
@@ -73,7 +75,7 @@ class DataManager(tlc.SingletonConfigurable,AstroSingleton):
     def loadCurrentProject(self) -> xa.Dataset:
         return self.mode_data_manager.loadCurrentProject()
 
-class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
+class ModeDataManager(tlc.Configurable):
     model_dims = tl.Int(16).tag(config=True,sync=True)
     subsample = tl.Int( 5 ).tag(config=True,sync=True)
     reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)
@@ -81,20 +83,15 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
     cache_dir = tl.Unicode( os.path.expanduser("~/Development/Cache") ).tag(config=True)
     data_dir = tl.Unicode( os.path.expanduser("~/Development/Data") ).tag(config=True)
 
-    def __init__(self):
+    def __init__(self, dm: DataManager, mode: str, **kwargs ):
         super(ModeDataManager, self).__init__()
         self.datasets = {}
-        self._mode = None
+        self._mode = mode
         self._model_dims_selector: ip.SelectionSlider = None
         self._subsample_selector: ip.SelectionSlider = None
         self._progress = None
         self._dset_selection: ip.Select = None
-        self.dm = None
-
-    def init(self, dm: DataManager, mode: str, **kwargs) -> "ModeDataManager":
-        self._mode = mode
         self.dm = dm
-        return self
 
     @property
     def config_mode(self):
@@ -159,16 +156,17 @@ class ModeDataManager(tlc.SingletonConfigurable,AstroSingleton):
         from astrolab.gui.application import Astrolab
         self.dm.select_current_mode()
         if self.dm.dataset != self._dset_selection.value:
-            print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dm.dataset}'")
+            print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dm.dataset}', current mode = '{self._mode}', current mode index = {self.dm.mode_index}, mdmgr id = {id(self)}")
+            self.dm.dataset = self._dset_selection.value
             self.dm.select_dataset( self._dset_selection.value )
-            Astrolab.instance().refresh()
+            Astrolab.instance().save_config()
 
     def getSelectionPanel(self ) -> ip.HBox:
         dsets: List[str] = self.getDatasetList()
         self._dset_selection: ip.Select = ip.Select( options = dsets, description='Datasets:',disabled=False )
         if len( dsets ) > 0: self._dset_selection.value = dsets[0]
         load: ip.Button = ip.Button( description="Load", border= '1px solid dimgrey')
-        load.on_click( self.select_dataset )
+        load.on_click(  lambda x: self.select_dataset() )
         filePanel: ip.HBox = ip.HBox( [self._dset_selection, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return filePanel
 

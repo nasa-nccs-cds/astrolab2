@@ -5,7 +5,7 @@ from functools import partial
 import ipywidgets as ipw
 from ..graph.flow import ActivationFlow
 import traitlets.config as tlc
-from astrolab.model.base import AstroSingleton, Marker
+from astrolab.model.base import AstroConfigurable, Marker
 import xarray as xa
 import numpy as np
 
@@ -53,7 +53,7 @@ class Action:
     def spec(self):
         return dict( atype=self.type, source=self.source , pids=self.pids, cid=self.cid, **self.args )
 
-class LabelsManager(tlc.SingletonConfigurable, AstroSingleton):
+class LabelsManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def __init__(self):
         super(LabelsManager, self).__init__()
