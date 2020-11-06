@@ -9,7 +9,7 @@ from pathlib import Path
 import xarray as xa
 import traitlets as tl
 import traitlets.config as tlc
-from astrolab.model.base import AstroConfigurable, AstroMultiConfigurable
+from astrolab.model.base import AstroConfigurable, AstroModeConfigurable
 
 class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     dataset = tl.Unicode("NONE").tag(config=True,sync=True)
@@ -61,21 +61,23 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
         if self._wModeTabs is None:
             Astrolab.set_astrolab_theme()
             mode_tabs = []
-            self._wModeTabs = ip.Tab( selected_index = self.mode_index, layout = ip.Layout( width='auto', height='auto' ) )
+            self._wModeTabs = ip.Tab( layout = ip.Layout( width='auto', height='auto' ) )
             for iTab, mdmgr in self._mode_data_managers.items():
                 self._wModeTabs.set_title( iTab, self.MODES[iTab]  )
                 mode_tabs.append( mdmgr.gui() )
                 print( f"DataManager.gui: add ModeDataManager[{iTab}], mode = {mdmgr.config_mode}, mdmgr id = {id(mdmgr)} ")
             self._wModeTabs.children = mode_tabs
+            self._wModeTabs.selected_index = self.mode_index
         return self._wModeTabs
 
     def getInputFileData(self, input_file_id: str, subsample: int = 1, dims: Tuple[int] = None) -> np.ndarray:
         return self.mode_data_manager.getInputFileData( input_file_id, subsample, dims )
 
     def loadCurrentProject(self) -> xa.Dataset:
+        print( " DataManager: loadCurrentProject" )
         return self.mode_data_manager.loadCurrentProject()
 
-class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
+class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
     model_dims = tl.Int(16).tag(config=True,sync=True)
     subsample = tl.Int( 5 ).tag(config=True,sync=True)
     reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)
@@ -84,18 +86,14 @@ class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
     data_dir = tl.Unicode( os.path.expanduser("~/Development/Data") ).tag(config=True)
 
     def __init__(self, dm: DataManager, mode: str, **kwargs ):
-        super(ModeDataManager, self).__init__()
+        tlc.Configurable.__init__(self)
+        AstroModeConfigurable.__init__( self, mode )
         self.datasets = {}
-        self._mode = mode
         self._model_dims_selector: ip.SelectionSlider = None
         self._subsample_selector: ip.SelectionSlider = None
         self._progress = None
         self._dset_selection: ip.Select = None
         self.dm = dm
-
-    @property
-    def config_mode(self):
-        return self._mode
 
     @classmethod
     def getXarray( cls, id: str, xcoords: Dict, subsample: int, xdims:OrderedDict, **kwargs ) -> xa.DataArray:
@@ -159,7 +157,7 @@ class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
             print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dm.dataset}', current mode = '{self._mode}', current mode index = {self.dm.mode_index}, mdmgr id = {id(self)}")
             self.dm.dataset = self._dset_selection.value
             self.dm.select_dataset( self._dset_selection.value )
-            Astrolab.instance().save_config()
+        Astrolab.instance().save_config( True )
 
     def getSelectionPanel(self ) -> ip.HBox:
         dsets: List[str] = self.getDatasetList()
@@ -176,10 +174,10 @@ class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
         apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
         apply.on_click( self.select_dataset )
         nepochs_selector: ip.IntSlider = ip.IntSlider( min=50, max=500, description='UMAP nepochs:', value=rm.nepochs, continuous_update=False, layout=ip.Layout( width="auto" ) )
-        def nepochs_handler( event ): rm.nepochs = event['new']; # print( f"Updating parameter 'nepochs' -> {event['new']} ")
+        def nepochs_handler( event ): rm.nepochs = event['new'];
         nepochs_selector.observe( nepochs_handler, "value" )
         alpha_selector: ip.FloatSlider = ip.FloatSlider( min=0.1, max=0.8, step=0.02, description='UMAP alpha:', value=rm.alpha, readout_format=".2f", continuous_update=False, layout=ip.Layout( width="auto" ) )
-        def alpha_handler(event): rm.alpha = event['new']; #  print(f"Updating parameter 'alpha' -> {event['new']} ")
+        def alpha_handler(event): rm.alpha = event['new'];
         alpha_selector.observe( alpha_handler, "value" )
         configPanel: ip.VBox = ip.VBox( [ nepochs_selector, alpha_selector, apply ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return configPanel
@@ -230,11 +228,12 @@ class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
             print(f" Can't read data[{input_file_id}] file {input_file_path}: {err}")
 
     def loadDataset( self, dsid: str, *args, **kwargs ) -> xa.Dataset:
+        print( f"Load dataset {dsid}, current datasets = {self.datasets.keys()}")
         if dsid is None: return None
         if dsid not in self.datasets:
             data_file = os.path.join( self.datasetDir, dsid + ".nc" )
             dataset: xa.Dataset = xa.open_dataset( data_file )
-            print( f"Opened Dataset {dsid} from file {data_file}")
+            print( f" ---> Opened Dataset {dsid} from file {data_file}")
             dataset.attrs['dsid'] = dsid
             dataset.attrs['type'] = 'spectra'
             self.datasets[dsid] = dataset

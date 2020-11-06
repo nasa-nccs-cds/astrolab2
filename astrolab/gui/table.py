@@ -264,6 +264,7 @@ class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
         return wTab
 
     def refresh(self):
+        print(" $$$$$$$$$$$$$$$$$$$$$ TableManager: refresh ")
         self._wGui = None
         self._tables: List[qgrid.QgridWidget] = []
 
@@ -272,8 +273,11 @@ class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def gui( self, **kwargs ) -> ipw.VBox:
         if self._wGui is None:
+            print(" $$$$$$$$$$$$$$$$$$$$$ TableManager: creating new GUI")
             self.init( **kwargs )
             self._wGui = self._createGui()
             self._wGui.layout = ipw.Layout(width='auto', flex='1 0 500px')
+        else:
+            print(" $$$$$$$$$$$$$$$$$$$$$ TableManager: reusing existing GUI")
         return self._wGui
 

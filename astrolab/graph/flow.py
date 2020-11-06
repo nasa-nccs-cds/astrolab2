@@ -70,7 +70,7 @@ class ActivationFlowManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def getActivationFlow( self, point_data: xa.DataArray, **kwargs ) -> Optional["ActivationFlow"]:
         if point_data is None: return None
-        dsid = point_data.attrs.get('dsid','swift')
+        dsid = point_data.attrs.get('dsid','global')
         print( f"Get Activation flow for dsid {dsid}")
         self.condition.acquire()
         try:

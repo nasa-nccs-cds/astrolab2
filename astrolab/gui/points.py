@@ -46,9 +46,9 @@ class PointCloudManager(tlc.SingletonConfigurable, AstroConfigurable):
         return np.empty(shape=[0], dtype=np.int)
 
     def init_data( self, **kwargs  ):
-        project_dataset = DataManager.instance().loadCurrentProject()
+        project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject()
         reduced_data: xa.DataArray = project_dataset.reduction
-        reduced_data.attrs['dsid'] = 'swift'
+        reduced_data.attrs['dsid'] = project_dataset.attrs['dsid']
         self._embedding = ReductionManager.instance().umap_init( reduced_data, **kwargs  )
         self.initialize_markers()
 

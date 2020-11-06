@@ -28,10 +28,10 @@ class Marker:
         except: return False
 
 class AstroConfigurable:
-    config_classes = []
+    config_classes = set()
 
     def __init__(self, **kwargs ):
-        self.config_classes.append( self.__class__ )
+        self.config_classes.add( self.__class__ )
 
     @property
     def config_mode(self):
@@ -45,16 +45,16 @@ class AstroConfigurable:
             tval = getattr(instance, tid)
             if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
             trait_values = trait_map.setdefault(instance.config_mode, {})
+            print( f"    *** add_trait_value[{instance.config_mode},{id(instance)}]: {cname+tid} -> {tval}")
             trait_values[cname + tid] = tval
 
     @classmethod
     def generate_config_file( cls ) -> Dict[str,str]:
         trait_map: Dict = {}
+        print( f"Generate config file, classes = {[clss.__name__ for clss in cls.config_classes]}")
         for clss in cls.config_classes:
-            instances: Union[List[tlc.Configurable],tlc.Configurable] = clss.instance()
-            if not isinstance( instances, list ): instances = [ instances ]
-            for sclss in instances:
-               cls.add_trait_values( trait_map, f"c.{sclss.__name__}.", sclss.instance() )
+            instance: tlc.Configurable = clss.instance()
+            cls.add_trait_values( trait_map, f"c.{instance.__class__.__name__}.", instance )
         result: Dict = {}
         for mode, trait_values in trait_map.items():
             lines = ['']
@@ -93,11 +93,19 @@ class AstroConfigurable:
                 yield cl
 
 
-class AstroMultiConfigurable:
-    subclass_config_classes = []
+class AstroModeConfigurable(AstroConfigurable):
+    _class_instances = {}
 
-    def __init__(self):
-        self.subclass_config_classes.append( self.__class__ )
+    def __init__( self, mode: str ):
+        AstroConfigurable.__init__(self)
+        self._mode = mode
+        self._class_instances[mode] = self
 
-    def instance(self) -> List:
-        return self.subclass_config_classes
+    @classmethod
+    def instance(cls):
+        from astrolab.data.manager import DataManager
+        return cls._class_instances[ DataManager.instance().mode ]
+
+    @property
+    def config_mode(self):
+        return self._mode

@@ -19,13 +19,13 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
         from traitlets.config.loader import load_pyconfig_files
         if os.path.isfile(cfg_file):
             (dir, fname) = os.path.split(cfg_file)
-            config_files = [ 'configuration', fname ]
+            config_files = [ 'configuration.py', fname ]
             print(f"Loading config files: {config_files} from dir {dir}")
             config = load_pyconfig_files( config_files, dir )
             for clss in self.config_classes:
                 clss.instance().update_config(config)
 
-    def save_config(self):
+    def save_config(self, refresh = False ):
         from astrolab.data.manager import DataManager
         conf_dict = self.generate_config_file()
         globals = conf_dict.pop( 'global', {} )
@@ -36,6 +36,7 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
                 print( f"Writing config file: {cfg_file}")
                 conf_txt = mode_conf_txt if mode == "configuration" else '\n'.join( [ mode_conf_txt, globals ] )
                 cfile_handle.write( conf_txt )
+        if refresh: self.refresh_all()
 
     def process_menubar_action(self, mname, dname, op, b ):
         print(f" process_menubar_action.on_value_change: {mname}.{dname} -> {op}")

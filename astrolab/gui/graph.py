@@ -24,9 +24,9 @@ class JbkGraph:
         ))
         self.fig = figure( title=self.title, height=300, width=1000, background_fill_color='#efefef' )
         self._r = self.fig.multi_line( 'xs', 'ys', source=self._source, line_color=linear_cmap('cmap', "Turbo256", 0, 255), line_width=1.5, alpha=0.8 )
-        print(f"Creating BokehModel; x0 shape = {self.x[0].shape},  y0 shape = {self.y[0].shape}")
+    #    print(f"Creating BokehModel; x0 shape = {self.x[0].shape},  y0 shape = {self.y[0].shape}")
         self._model = jbk.BokehModel( self.fig, layout = ip.Layout( width= 'auto', height= 'auto' ) )
-        print( f"BokehModel: {self._model.keys}" )
+    #    print( f"BokehModel: {self._model.keys}" )
 
     def gui(self):
         self.plot()
@@ -39,7 +39,7 @@ class JbkGraph:
             cls._x: np.ndarray = project_data["plot-x"].values
             cls._ploty: np.ndarray = project_data["plot-y"].values
             table_cols = DataManager.instance().table_cols
-            print( f"           &&&&   JbkGraph init, using cols {table_cols} from {list(project_data.variables.keys())}, ploty shape = {cls._ploty.shape}" )
+    #        print( f"           &&&&   JbkGraph init, using cols {table_cols} from {list(project_data.variables.keys())}, ploty shape = {cls._ploty.shape}" )
             cls._mdata: List[np.ndarray] = [ project_data[mdv].values for mdv in table_cols ]
 
     def select_items(self, idxs: List[int] ):
@@ -51,7 +51,7 @@ class JbkGraph:
         self.fig.title.text = self.title
         self._source.data.update( ys = y, xs=self.x, cmap = np.random.randint(0,255,nlines) )
         self.fig.y_range.update( start=yr[0], end=yr[1] )
-        print( f"           &&&&   GRAPH:plot-> title={self.title}, nlines={nlines}, y0 shape = {y[0].shape}, x0 shape = {self.x[0].shape}")
+    #    print( f"           &&&&   GRAPH:plot-> title={self.title}, nlines={nlines}, y0 shape = {y[0].shape}, x0 shape = {self.x[0].shape}")
 
     @property
     def x(self) -> List[ np.ndarray ]:
@@ -113,5 +113,5 @@ class GraphManager(tlc.SingletonConfigurable, AstroConfigurable):
     def on_selection(self, selection_event: Dict ):
         selection = selection_event['pids']
         if len( selection ) > 0:
-            print(f"           &&&&   GRAPH.on_selection: nitems = {len(selection)}, pid={selection[0]}")
+    #        print(f"           &&&&   GRAPH.on_selection: nitems = {len(selection)}, pid={selection[0]}")
             self.plot_graph( selection )
