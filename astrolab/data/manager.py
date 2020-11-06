@@ -9,7 +9,7 @@ from pathlib import Path
 import xarray as xa
 import traitlets as tl
 import traitlets.config as tlc
-from astrolab.model.base import AstroConfigurable
+from astrolab.model.base import AstroConfigurable, AstroMultiConfigurable
 
 class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     dataset = tl.Unicode("NONE").tag(config=True,sync=True)
@@ -75,7 +75,7 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     def loadCurrentProject(self) -> xa.Dataset:
         return self.mode_data_manager.loadCurrentProject()
 
-class ModeDataManager(tlc.Configurable):
+class ModeDataManager( tlc.Configurable, AstroMultiConfigurable ):
     model_dims = tl.Int(16).tag(config=True,sync=True)
     subsample = tl.Int( 5 ).tag(config=True,sync=True)
     reduce_method = tl.Unicode("Autoencoder").tag(config=True,sync=True)

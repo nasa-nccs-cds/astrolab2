@@ -1,7 +1,7 @@
 import traitlets.config as tlc
 from collections import OrderedDict
 import numpy as np
-from typing import List, Union, Dict, Callable, Tuple, Optional, Any
+from typing import List, Union, Dict, Callable, Tuple, Optional, Any, Type
 import traitlets as tl
 
 class Marker:
@@ -40,16 +40,21 @@ class AstroConfigurable:
     def refresh(self): pass
 
     @classmethod
+    def add_trait_values( cls, trait_map: Dict, cname: str, instance: tlc.Configurable ):
+        for tid, trait in instance.class_traits(config=True).items():
+            tval = getattr(instance, tid)
+            if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
+            trait_values = trait_map.setdefault(instance.config_mode, {})
+            trait_values[cname + tid] = tval
+
+    @classmethod
     def generate_config_file( cls ) -> Dict[str,str]:
         trait_map: Dict = {}
         for clss in cls.config_classes:
-            instance: tlc.SingletonConfigurable = clss.instance()
-            cname = f"c.{clss.__name__}."
-            for tid, trait in instance.class_traits(config=True).items():
-                tval = getattr( instance, tid )
-                if trait.__class__.__name__ == "Unicode":  tval = f'"{tval}"'
-                trait_values = trait_map.setdefault( instance.config_mode, {} )
-                trait_values[cname+tid]  = tval
+            instances: Union[List[tlc.Configurable],tlc.Configurable] = clss.instance()
+            if not isinstance( instances, list ): instances = [ instances ]
+            for sclss in instances:
+               cls.add_trait_values( trait_map, f"c.{sclss.__name__}.", sclss.instance() )
         result: Dict = {}
         for mode, trait_values in trait_map.items():
             lines = ['']
@@ -86,3 +91,13 @@ class AstroConfigurable:
         for cl, inc_yes in cls_to_config.items():
             if inc_yes:
                 yield cl
+
+
+class AstroMultiConfigurable:
+    subclass_config_classes = []
+
+    def __init__(self):
+        self.subclass_config_classes.append( self.__class__ )
+
+    def instance(self) -> List:
+        return self.subclass_config_classes
