@@ -56,7 +56,7 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     def select_current_mode(self):
         self.mode_index = self._wModeTabs.selected_index
 
-    def gui( self, **kwargs ) -> ip.Tab():
+    def gui( self ) -> ip.Tab():
         from astrolab.gui.application import Astrolab
         if self._wModeTabs is None:
             Astrolab.set_astrolab_theme()
@@ -171,15 +171,23 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
     def getConfigPanel(self):
         from astrolab.reduction.embedding import ReductionManager
         rm = ReductionManager.instance()
+
         apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
         apply.on_click( self.select_dataset )
+
         nepochs_selector: ip.IntSlider = ip.IntSlider( min=50, max=500, description='UMAP nepochs:', value=rm.nepochs, continuous_update=False, layout=ip.Layout( width="auto" ) )
         def nepochs_handler( event ): rm.nepochs = event['new'];
         nepochs_selector.observe( nepochs_handler, "value" )
-        alpha_selector: ip.FloatSlider = ip.FloatSlider( min=0.1, max=0.8, step=0.02, description='UMAP alpha:', value=rm.alpha, readout_format=".2f", continuous_update=False, layout=ip.Layout( width="auto" ) )
+
+        alpha_selector: ip.FloatSlider = ip.FloatSlider( min=0.1, max=0.8, step=0.01, description='UMAP alpha:', value=rm.alpha, readout_format=".2f", continuous_update=False, layout=ip.Layout( width="auto" ) )
         def alpha_handler(event): rm.alpha = event['new'];
         alpha_selector.observe( alpha_handler, "value" )
-        configPanel: ip.VBox = ip.VBox( [ nepochs_selector, alpha_selector, apply ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
+
+        init_selector: ip.Select = ip.Select( options=["random","spectral"], description='UMAP init method:', value="random",  layout=ip.Layout( width="auto" ) )
+        def init_handler(event): rm.init = event['new'];
+        init_selector.observe( init_selector, "value" )
+
+        configPanel: ip.VBox = ip.VBox( [ nepochs_selector, alpha_selector, init_selector, apply ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return configPanel
 
     def getCreationPanel(self) -> ip.VBox:
