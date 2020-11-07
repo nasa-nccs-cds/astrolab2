@@ -97,6 +97,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         if point_data.shape[1] <= self.ndim:
             mapper.set_embedding(mapper.input_data)
         else:
+            print( f"umap_init: init = {self.init}")
             mapper.init = self.init
             kwargs['nepochs'] = 1
             labels_data: np.ndarray = LabelsManager.instance().labels_data().values

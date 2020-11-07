@@ -50,6 +50,7 @@ class PointCloudManager(tlc.SingletonConfigurable, AstroConfigurable):
         reduced_data: xa.DataArray = project_dataset.reduction
         reduced_data.attrs['dsid'] = project_dataset.attrs['dsid']
         self._embedding = ReductionManager.instance().umap_init( reduced_data, **kwargs  )
+        self._points = self._embedding
         self.initialize_markers()
 
     def reembed(self, **kwargs ):

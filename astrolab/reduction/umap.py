@@ -1742,10 +1742,10 @@ class UMAP(BaseEstimator):
         else:
             if isinstance(self.init, np.ndarray):
                 init = check_array(self.init, dtype=np.float32, accept_sparse=False)
-                print(f"Running umap[{self.n_components}] with init array, input shape = {self._raw_data.shape}, #epochs = {self.n_epochs}")
+                print(f"Running umap[{self.n_components}] with init array, input shape = {self._raw_data.shape}")
             else:
                 init = self.init
-                print(f"Running umap[{self.n_components}] with init {init}, input shape = {self._raw_data.shape}, #epochs = {self.n_epochs}")
+                print(f"Running umap[{self.n_components}] with init {init}, input shape = {self._raw_data.shape}")
 
         self._initial_alpha = self.learning_rate
         self._validate_parameters()
@@ -1842,7 +1842,7 @@ class UMAP(BaseEstimator):
 
         nepochs = kwargs.get( 'nepochs', self.n_epochs )
         init_alpha = kwargs.get( 'alpha', self._initial_alpha )
-        print( f"Computing umap embedding with nepochs = {nepochs}, alpha = {init_alpha}, nLabels = {np.count_nonzero( y > 0 )}" )
+        print( f"Computing umap embedding with nepochs = {nepochs}, alpha = {init_alpha}, nLabels = {np.count_nonzero( y > 0 )}, init = {init} ({self.init})" )
         self._init_embedding_, self._embedding_ = simplicial_set_embedding(
             self._raw_data,  # JH why raw data?
             self.graph_,
