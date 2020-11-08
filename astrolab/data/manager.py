@@ -181,7 +181,7 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
             rm.nepochs = nepochs_selector.value
             rm.alpha = alpha_selector.value
             rm.init = init_selector.value
-            Astrolab.instance().save_config( True )
+            Astrolab.instance().save_config()
         apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
         apply.on_click( apply_handler )
 
