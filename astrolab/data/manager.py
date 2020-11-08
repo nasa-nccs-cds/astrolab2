@@ -157,14 +157,14 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
             print(f"Loading dataset '{self._dset_selection.value}', current dataset = '{self.dm.dataset}', current mode = '{self._mode}', current mode index = {self.dm.mode_index}, mdmgr id = {id(self)}")
             self.dm.dataset = self._dset_selection.value
             self.dm.select_dataset( self._dset_selection.value )
-        Astrolab.instance().save_config( True )
+        Astrolab.instance().refresh_all()
 
     def getSelectionPanel(self ) -> ip.HBox:
         dsets: List[str] = self.getDatasetList()
         self._dset_selection: ip.Select = ip.Select( options = dsets, description='Datasets:',disabled=False )
         if len( dsets ) > 0: self._dset_selection.value = dsets[0]
         load: ip.Button = ip.Button( description="Load", border= '1px solid dimgrey')
-        load.on_click(  lambda x: self.select_dataset() )
+        load.on_click(  self.select_dataset )
         filePanel: ip.HBox = ip.HBox( [self._dset_selection, load ], layout=ip.Layout( width="100%", height="100%" ), border= '2px solid firebrick' )
         return filePanel
 
@@ -177,10 +177,11 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
         init_selector: ip.Select = ip.Select( options=["random","spectral"], description='UMAP init method:', value="random",  layout=ip.Layout( width="auto" ) )
 
         def apply_handler(*args):
+            from astrolab.gui.application import Astrolab
             rm.nepochs = nepochs_selector.value
             rm.alpha = alpha_selector.value
             rm.init = init_selector.value
-            self.select_dataset()
+            Astrolab.instance().save_config( True )
         apply: ip.Button = ip.Button(description="Apply", layout=ip.Layout(flex='1 1 auto'), border='1px solid dimgrey')
         apply.on_click( apply_handler )
 

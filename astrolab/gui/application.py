@@ -25,7 +25,7 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
             for clss in self.config_classes:
                 clss.instance().update_config(config)
 
-    def save_config(self, refresh = False ):
+    def save_config( self ):
         from astrolab.data.manager import DataManager
         conf_dict = self.generate_config_file()
         globals = conf_dict.pop( 'global', {} )
@@ -36,7 +36,6 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
                 print( f"Writing config file: {cfg_file}")
                 conf_txt = mode_conf_txt if mode == "configuration" else '\n'.join( [ mode_conf_txt, globals ] )
                 cfile_handle.write( conf_txt )
-        if refresh: self.refresh_all()
 
     def process_menubar_action(self, mname, dname, op, b ):
         print(f" process_menubar_action.on_value_change: {mname}.{dname} -> {op}")
@@ -80,8 +79,8 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
         return gui
 
     def refresh_all(self):
-        for config_class in self.config_classes: config_class.instance().refresh()
         self.save_config()
+        for config_class in self.config_classes: config_class.instance().refresh()
         print( "Refreshed Application")
 
     def __delete__(self, instance):
