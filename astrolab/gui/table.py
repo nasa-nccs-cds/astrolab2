@@ -33,7 +33,7 @@ class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def init(self, **kwargs):
         catalog: Dict[str,np.ndarray] = kwargs.get( 'catalog', None )
-        project_data: xa.Dataset = DataManager.instance().loadCurrentProject()
+        project_data: xa.Dataset = DataManager.instance().loadCurrentProject("table")
         table_cols = DataManager.instance().table_cols
         if catalog is None:  catalog = { tcol: project_data[tcol].values for tcol in table_cols }
         nrows = catalog[table_cols[0]].shape[0]
@@ -72,7 +72,7 @@ class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def spread_selection(self, niters=1):
         from astrolab.graph.flow import ActivationFlowManager, ActivationFlow
-        project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject()
+        project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject("table")
         catalog_pids = np.arange( 0, project_dataset.reduction.shape[0] )
         flow: ActivationFlow = ActivationFlowManager.instance().getActivationFlow( project_dataset.reduction )
         self._flow_class_map = np.copy( self._class_map )
@@ -91,7 +91,7 @@ class TableManager(tlc.SingletonConfigurable, AstroConfigurable):
 
     def display_distance(self, niters=100):
         from astrolab.graph.flow import ActivationFlowManager, ActivationFlow
-        project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject()
+        project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject("table")
         all_classes = (self.selected_class == 0)
         seed_points = self._class_map if all_classes else np.where( self._class_map == self.selected_class, self._class_map, np.array([0]) )
         flow: ActivationFlow = ActivationFlowManager.instance().create_flow( project_dataset.reduction )

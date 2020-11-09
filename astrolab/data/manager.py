@@ -73,8 +73,8 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     def getInputFileData(self, input_file_id: str, subsample: int = 1, dims: Tuple[int] = None) -> np.ndarray:
         return self.mode_data_manager.getInputFileData( input_file_id, subsample, dims )
 
-    def loadCurrentProject(self) -> xa.Dataset:
-        print( " DataManager: loadCurrentProject" )
+    def loadCurrentProject(self, caller_id: str ) -> xa.Dataset:
+        print( f" DataManager: loadCurrentProject: {caller_id}" )
         return self.mode_data_manager.loadCurrentProject()
 
 class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):

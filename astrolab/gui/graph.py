@@ -13,6 +13,9 @@ import traitlets.config as tlc
 from astrolab.model.base import AstroConfigurable
 
 class JbkGraph:
+    _x: np.ndarray = None
+    _ploty: np.ndarray = None
+    _mdata: List[np.ndarray] = None
 
     def __init__( self, **kwargs ):
         self.init_data(**kwargs)
@@ -33,9 +36,15 @@ class JbkGraph:
         return self._model
 
     @classmethod
+    def refresh(cls):
+        cls._x = None
+        cls._ploty = None
+        cls._mdata = None
+
+    @classmethod
     def init_data(cls, **kwargs ):
-        if not hasattr(cls, '_x'):
-            project_data: xa.Dataset = DataManager.instance().loadCurrentProject()
+        if cls._x is None:
+            project_data: xa.Dataset = DataManager.instance().loadCurrentProject("graph")
             cls._x: np.ndarray = project_data["plot-x"].values
             cls._ploty: np.ndarray = project_data["plot-y"].values
             table_cols = DataManager.instance().table_cols
@@ -90,6 +99,7 @@ class GraphManager(tlc.SingletonConfigurable, AstroConfigurable):
         return self._wGui
 
     def refresh(self):
+        JbkGraph.refresh()
         print(f"           &&&&   GraphManager refresh ")
         self._wGui = None
 
