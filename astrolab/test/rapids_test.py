@@ -33,7 +33,6 @@ target = source_df["class"]
 #
 # # Need sparse array format.
 
-%%time
 reducer = cuml.UMAP(
     n_neighbors=15,
     n_components=2,
