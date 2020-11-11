@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 # Using cudf Dataframe here is not likely to help with performance
 # However, it's a good opportunity to get familiar with the API
 source_df = cudf.read_csv('/att/nobackup/tpmaxwel/data/fashion-mnist-csv/fashion_train.csv')
-data = source_df.loc[:, source_df.columns[:-1]]
-target = source_df["class"]
+data = source_df.loc[ :, source_df.columns[:-1] ]
+target = source_df[ source_df.columns[-1] ]
 
 # # Compute K-NN graph
 #
