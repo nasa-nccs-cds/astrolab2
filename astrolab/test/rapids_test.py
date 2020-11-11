@@ -6,6 +6,19 @@ import datashader as ds
 import datashader.utils as utils
 import datashader.transfer_functions as tf
 import matplotlib.pyplot as plt
+pal = [
+    "#9e0142",
+    "#d8434e",
+    "#f67a49",
+    "#fdbf6f",
+    "#feeda1",
+    "#f1f9a9",
+    "#bfe5a0",
+    "#74c7a5",
+    "#378ebb",
+    "#5e4fa2",
+]
+color_key = {str(d): c for d, c in enumerate(pal)}
 
 # Using cudf Dataframe here is not likely to help with performance
 # However, it's a good opportunity to get familiar with the API
