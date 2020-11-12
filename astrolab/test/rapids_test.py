@@ -16,8 +16,8 @@ model.fit(data)
 ind_mlarr, dist_mlarr = model.kneighbors(data)
 
 # create sparse matrix
-distances =  cupy.ravel( dist_mlarr.to_output('cupy') )
-indices =  cupy.ravel( ind_mlarr.to_output('cupy') )
+distances =  cupy.ravel( cupy.fromDlpack( dist_mlarr.to_dlpack() ) )
+indices =    cupy.ravel( cupy.fromDlpack( ind_mlarr.to_dlpack() ) )
 n_samples = indices.shape[0]
 n_nonzero = n_samples * n_neighbors
 rowptr = cupy.arange(0, n_nonzero + 1, n_neighbors)
