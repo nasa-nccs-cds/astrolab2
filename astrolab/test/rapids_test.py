@@ -1,4 +1,3 @@
-#%%
 import cudf, cuml, cupy, cupyx
 from cuml.neighbors import NearestNeighbors
 
@@ -10,7 +9,7 @@ target = source_df[ source_df.columns[-1] ]
 n_neighbors=5
 
 # fit model
-model = NearestNeighbors( n_neighbors=5, output_type="cupy" )
+model = NearestNeighbors( n_neighbors=5 )
 model.fit(data)
 
 # get nearest neighbors
