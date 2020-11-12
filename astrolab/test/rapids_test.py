@@ -13,7 +13,7 @@ model = NearestNeighbors( n_neighbors=5 )
 model.fit(data)
 
 # get nearest neighbors
-ind_mlarr, dist_mlarr = model.kneighbors( data, return_distance=True )
+dist_mlarr, ind_mlarr = model.kneighbors( data, return_distance=True )
 
 # create sparse matrix
 distances =  cupy.ravel( cupy.fromDlpack( dist_mlarr.to_dlpack() ) )
