@@ -1,6 +1,5 @@
 #%%
-import cudf
-import cuml
+import cudf, cuml, cupy, cupyx
 from cuml.neighbors import NearestNeighbors
 
 # Using cudf Dataframe here is not likely to help with performance
@@ -8,13 +7,20 @@ from cuml.neighbors import NearestNeighbors
 source_df: cudf.DataFrame = cudf.read_csv('/att/nobackup/tpmaxwel/data/fashion-mnist-csv/fashion_train.csv')
 data = source_df.loc[ :, source_df.columns[:-1] ]
 target = source_df[ source_df.columns[-1] ]
+n_neighbors=5
 
 # fit model
 model = NearestNeighbors( n_neighbors=5, output_type="cupy" )
 model.fit(data)
 
-# get 5 nearest neighbors
-knn_graph = model.kneighbors_graph(data)
+# get nearest neighbors
+indices, distances = model.kneighbors(data)
+
+# create sparse matrix
+n_samples = indices.shape[0]
+n_nonzero = n_samples * n_neighbors
+rowptr = cupy.arange(0, n_nonzero + 1, n_neighbors)
+knn_graph = cupyx.scipy.sparse.csr_matrix( ( distances, indices, rowptr ), shape=(n_samples, n_samples) )
 
 print( f"Completed KNN, graph shape = {knn_graph.shape}" )
 
