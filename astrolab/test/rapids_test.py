@@ -14,9 +14,11 @@ model = NearestNeighbors( n_neighbors=5, output_type="cupy" )
 model.fit(data)
 
 # get nearest neighbors
-indices, distances = model.kneighbors(data)
+ind_mlarr, dist_mlarr = model.kneighbors(data)
 
 # create sparse matrix
+distances =  cupy.ravel( dist_mlarr.to_output('cupy') )
+indices =  cupy.ravel( ind_mlarr.to_output('cupy') )
 n_samples = indices.shape[0]
 n_nonzero = n_samples * n_neighbors
 rowptr = cupy.arange(0, n_nonzero + 1, n_neighbors)
