@@ -18,7 +18,7 @@ ind_mlarr, dist_mlarr = model.kneighbors( data, return_distance=True )
 # create sparse matrix
 distances =  cupy.ravel( cupy.fromDlpack( dist_mlarr.to_dlpack() ) )
 indices =    cupy.ravel( cupy.fromDlpack( ind_mlarr.to_dlpack() ) )
-print( f"Computed KNN graph, distances shape = {distances.shape}, indices shape = {indices.shape}")
+print( f"Computed KNN graph, distances shape = {distances.shape}, indices shape = {indices.shape}, distances[0:5]= {distances[0:5]}, indices[0:5]= {indices[0:5]}")
 n_samples = indices.shape[0]
 n_nonzero = n_samples * n_neighbors
 rowptr = cupy.arange(0, n_nonzero + 1, n_neighbors)
