@@ -3,7 +3,7 @@ from typing import List, Union, Dict, Callable, Tuple, Optional, Any
 import collections.abc
 from functools import partial
 import ipywidgets as ipw
-from ..graph.flow import ActivationFlow
+from ..graph.cpu import cpActivationFlow
 import traitlets.config as tlc
 from astrolab.model.base import AstroConfigurable, Marker
 import xarray as xa
@@ -61,7 +61,7 @@ class LabelsManager(tlc.SingletonConfigurable, AstroConfigurable):
         self._labels = None
         self.selectedClass = 0
         self._markers: List[Marker] = []
-        self._flow: ActivationFlow = None
+        self._flow: cpActivationFlow = None
         self._actions = []
         self._labels_data: xa.DataArray = None
         self._selected_class = 0
@@ -97,7 +97,7 @@ class LabelsManager(tlc.SingletonConfigurable, AstroConfigurable):
             self.set_selected_class( 0 )
         return self.wSelectedClass
 
-    def flow(self) -> Optional[ActivationFlow]:
+    def flow(self) -> Optional[cpActivationFlow]:
         return self._flow
 
     def addAction(self, type: str, source: str, pids: List[int] = None, cid=None, **kwargs ):

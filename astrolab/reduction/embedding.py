@@ -2,7 +2,7 @@ from typing import List, Union, Tuple, Dict
 from keras.layers import *
 from keras.models import *
 from typing import List, Union, Tuple, Optional, Dict
-from ..graph.flow import ActivationFlowManager
+from ..graph.cpu import ActivationFlowManager
 import xarray as xa
 import numpy as np, time, traceback
 from .umap import UMAP

@@ -1,13 +1,11 @@
 from pynndescent import NNDescent
 import numpy as np
 import numpy.ma as ma
+from .base import ActivationFlow
 import xarray as xa
 import numba
 from typing import List, Union, Tuple, Optional, Dict
 import os, time, threading, traceback
-import traitlets.config as tlc
-import traitlets as tl
-from astrolab.model.base import AstroConfigurable
 
 @numba.njit(fastmath=True,
     locals={
@@ -53,65 +51,16 @@ def iterate_spread_labels( I: np.ndarray, D: np.ndarray, C: np.ndarray, P: np.nd
                 C[pid1] = label_spec[1]
                 P[pid1] = PN
 
-class ActivationFlowManager(tlc.SingletonConfigurable, AstroConfigurable):
-    nneighbors = tl.Int( 5 ).tag(config=True,sync=True)
-
-    def __init__(self):
-        super(ActivationFlowManager, self).__init__()
-        self.instances = {}
-        self.condition = threading.Condition()
-
-    def __getitem__( self, dsid ):
-        return self.instances.get( dsid )
-
-    def clear(self):
-        for instance in self.instances.values():
-            instance.clear()
-
-    def getActivationFlow( self, point_data: xa.DataArray, **kwargs ) -> Optional["ActivationFlow"]:
-        if point_data is None: return None
-        dsid = point_data.attrs.get('dsid','global')
-        print( f"Get Activation flow for dsid {dsid}")
-        self.condition.acquire()
-        try:
-            result = self.instances.get( dsid, None )
-            if result is None:
-                result = self.create_flow( point_data, **kwargs )
-                self.instances[dsid] = result
-            self.condition.notifyAll()
-        finally:
-            self.condition.release()
-        return result
-
-    def create_flow(self, point_data: xa.DataArray, **kwargs):
-        return ActivationFlow( point_data, self.nneighbors, **kwargs )
-
-class ActivationFlow(object):
+class cpActivationFlow(ActivationFlow):
 
     def __init__(self, nodes_data: xa.DataArray, n_neighbors: int, **kwargs ):
-        self.nneighbors = n_neighbors
-        self.nodes: xa.DataArray = None
+        ActivationFlow.__init__( nodes_data, n_neighbors, **kwargs )
         self.nnd: NNDescent = None
         self.I: np.ndarray = None
         self.D: np.ndarray = None
         self.P: np.ndarray = None
         self.C: np.ndarray = None
-        self.reset = True
-
-        # background = kwargs.get( 'background', False )
-        # if background:
-        #     self.init_task = Task( f"Compute NN graph", self.setNodeData, nodes_data, **kwargs )
-        #     taskRunner.start( self.init_task )
-        # else:
-
         self.setNodeData( nodes_data, **kwargs )
-
-    def clear(self):
-        self.reset = True
-
-    def setGraph( self, I: np.ndarray, D: np.ndarray ):
-        self.I = I
-        self.D = ma.MaskedArray( D )
 
     def setNodeData(self, nodes_data: xa.DataArray, **kwargs ):
         if self.reset or (self.nodes is None):

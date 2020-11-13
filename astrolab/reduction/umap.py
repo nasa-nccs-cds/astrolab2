@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state, check_array
 from sklearn.preprocessing import normalize
-from astrolab.graph.flow import ActivationFlow
+from astrolab.graph.cpu import cpActivationFlow
 try:
     import joblib
 except ImportError:
@@ -1360,7 +1360,7 @@ class UMAP(BaseEstimator):
         self.b = b
 
         self.input_data: np.ndarray = None
-        self.flow: ActivationFlow = None
+        self.flow: cpActivationFlow = None
         self.scoord: xa.DataArray = None
 
 
