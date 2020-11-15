@@ -7,7 +7,6 @@ import os, time, threading, traceback
 import traitlets.config as tlc
 import traitlets as tl
 from astrolab.model.base import AstroConfigurable
-from .cpu import cpActivationFlow
 
 class ActivationFlowManager(tlc.SingletonConfigurable, AstroConfigurable):
     nneighbors = tl.Int( 5 ).tag(config=True,sync=True)
@@ -40,4 +39,16 @@ class ActivationFlowManager(tlc.SingletonConfigurable, AstroConfigurable):
         return result
 
     def create_flow(self, point_data: xa.DataArray, **kwargs):
+        from astrolab.data.manager import DataManager
+        if DataManager.proc_type == "cpu":
+            return self.create_flow_cp( point_data, **kwargs )
+        elif DataManager.proc_type == "gpu":
+            return self.create_flow_gp( point_data, **kwargs)
+
+    def create_flow_cp(self, point_data: xa.DataArray, **kwargs):
+        from .cpu import cpActivationFlow
         return cpActivationFlow(point_data, self.nneighbors, **kwargs)
+
+    def create_flow_gp(self, point_data: xa.DataArray, **kwargs):
+        from .gpu import gpActivationFlow
+        return gpActivationFlow(point_data, self.nneighbors, **kwargs)
