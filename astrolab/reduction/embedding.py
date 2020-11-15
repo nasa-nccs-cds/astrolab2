@@ -1,6 +1,4 @@
 from typing import List, Union, Tuple, Dict
-from keras.layers import *
-from keras.models import *
 from typing import List, Union, Tuple, Optional, Dict
 from ..graph.manager import ActivationFlowManager
 import xarray as xa
@@ -62,6 +60,8 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
     #     return rv
 
     def autoencoder_reduction( self, encoder_input: np.ndarray, ndim: int, epochs: int = 1 ) -> np.ndarray:
+        from keras.layers import Input, Dense
+        from keras.models import Model
         input_dims = encoder_input.shape[1]
         reduction_factor = 1.7
         inputlayer = Input( shape=[input_dims] )
