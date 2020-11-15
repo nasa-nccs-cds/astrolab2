@@ -3,7 +3,6 @@ from typing import List, Union, Tuple, Optional, Dict
 from ..graph.manager import ActivationFlowManager
 import xarray as xa
 import numpy as np, time, traceback
-from .umap import UMAP
 from ..model.labels import LabelsManager
 import traitlets as tl
 import traitlets.config as tlc
@@ -87,6 +86,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return  encoder.predict( encoder_input )
 
     def umap_init( self,  point_data: xa.DataArray, **kwargs ) -> Optional[np.ndarray]:
+        from .umap import UMAP
         self._state = self.NEW_DATA
         self._dsid = point_data.attrs['dsid']
         LabelsManager.instance().initLabelsData(point_data)
@@ -105,6 +105,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return mapper.embedding
 
     def umap_embedding( self, **kwargs ) -> Optional[np.ndarray]:
+        from .umap import UMAP
         mapper: UMAP = self.getUMapper(self._dsid, self.ndim)
         if 'nepochs' not in kwargs.keys():   kwargs['nepochs'] = self.nepochs
         if 'alpha' not in kwargs.keys():   kwargs['alpha'] = self.alpha
@@ -116,6 +117,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return mapper.embedding
 
     def xa_umap_embedding( self, **kwargs ) -> Optional[xa.DataArray]:
+        from .umap import UMAP
         mapper: UMAP = self.getUMapper(self._dsid, self.ndim)
         if mapper.embedding is None: self.umap_embedding( **kwargs )
         return None if mapper.embedding is None else self.wrap_embedding( mapper.scoord, mapper.embedding, **kwargs )
@@ -124,7 +126,8 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         ax_model = np.arange( embedding.shape[1] )
         return xa.DataArray( embedding, dims=['samples','model'], coords=dict( samples=ax_samples, model=ax_model ) )
 
-    def getUMapper(self, dsid: str, ndim: int ) -> UMAP:
+    def getUMapper(self, dsid: str, ndim: int ):
+        from .umap import UMAP
         mid = f"{ndim}-{dsid}"
         nneighbors = ActivationFlowManager.instance().nneighbors
         mapper = self._mapper.get( mid )
