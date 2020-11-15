@@ -6,7 +6,6 @@ class ActivationFlow(object):
 
     def __init__(self, nodes_data: xa.DataArray, n_neighbors: int, **kwargs ):
         self.nneighbors = n_neighbors
-        self.nodes: xa.DataArray = None
         self.reset = True
         self.setNodeData( nodes_data, **kwargs )
 
