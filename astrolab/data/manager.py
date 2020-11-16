@@ -120,11 +120,15 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
         if self._progress is not None:
             self._progress.value = pval
 
+    def update_gui_parameters(self):
+        if self._model_dims_selector is not None:
+            self.model_dims = self._model_dims_selector.value
+            self.subsample = self._subsample_selector.value
+
     def prepare_inputs( self, *args ):
         self.dm.select_current_mode()
+        self.update_gui_parameters()
         self.set_progress( 0.02 )
-        self.model_dims = self._model_dims_selector.value
-        self.subsample = self._subsample_selector.value
         file_name = f"raw" if self.reduce_method == "None" else f"{self.reduce_method}-{self.model_dims}"
         if self.subsample > 1: file_name = f"{file_name}-ss{self.subsample}"
         output_file = os.path.join( self.datasetDir, file_name + ".nc" )
