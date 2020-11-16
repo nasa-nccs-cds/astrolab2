@@ -15,3 +15,5 @@ project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject("spectra
 graph_data: xa.DataArray = project_dataset["reduction"]
 activation_flow = ActivationFlow.instance( graph_data, n_neighbors )
 
+
+
