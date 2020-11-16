@@ -54,7 +54,7 @@ def iterate_spread_labels( I: np.ndarray, D: np.ndarray, C: np.ndarray, P: np.nd
 class cpActivationFlow(ActivationFlow):
 
     def __init__(self, nodes_data: xa.DataArray, n_neighbors: int, **kwargs ):
-        ActivationFlow.__init__( nodes_data, n_neighbors, **kwargs )
+        ActivationFlow.__init__( self,  n_neighbors, **kwargs )
         self.nnd: NNDescent = None
         self.I: np.ndarray = None
         self.D: np.ndarray = None

@@ -13,7 +13,7 @@ import os, time, threading, traceback
 class gpActivationFlow(ActivationFlow):
 
     def __init__(self, nodes_data: xa.DataArray, n_neighbors: int, **kwargs ):
-        ActivationFlow.__init__( self, nodes_data, n_neighbors, **kwargs )
+        ActivationFlow.__init__( self,  n_neighbors, **kwargs )
         self.I: cudf.DataFrame = None
         self.D: cudf.DataFrame = None
         self.P: cudf.DataFrame = None
@@ -22,7 +22,7 @@ class gpActivationFlow(ActivationFlow):
         self.setNodeData( nodes_data, **kwargs )
 
     def setNodeData(self, nodes_data: xa.DataArray, **kwargs ):
-        print( f"{self.__class__.__name__}.setNodeData: input shape = {nodes_data.shape}" )
+        print( f"{self.__class__.__name__}[{hex(id(self))}].setNodeData: input shape = {nodes_data.shape}" )
         if self.reset or (self.nodes is None):
             if (nodes_data.size > 0):
                 t0 = time.time()
