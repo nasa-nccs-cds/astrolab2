@@ -5,7 +5,7 @@ from astrolab.data.manager import DataManager
 from astrolab.graph.gpu import gpActivationFlow
 
 app = Astrolab.instance()
-app.configure()
+app.configure("spectraclass")
 n_neighbors = 5
 t0 = time.time()
 

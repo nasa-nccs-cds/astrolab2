@@ -6,7 +6,7 @@ from astrolab.gui.application import Astrolab
 from astrolab.data.manager import DataManager
 
 app = Astrolab.instance()
-app.configure()
+app.configure("spectraclass")
 
 t0 = time.time()
 nrows = 10

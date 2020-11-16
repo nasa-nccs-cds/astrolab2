@@ -17,7 +17,7 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     proc_type = tl.Enum( ["gpu","cpu"], "gpu" ).tag(config=True)
     MODES = [ "swift", "tess" ]
     METAVARS = dict(swift=["target_names", "obsids"], tess=['tics', "camera", "chip", "dec", 'ra', 'tmag'])
-    name = tl.Unicode('astrolab').tag(config=True)
+    name = tl.Unicode('astroclass').tag(config=True)
 
     def __init__(self):
         super(DataManager, self).__init__()
@@ -55,7 +55,8 @@ class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
         print( f"Setting Dataset parameters, dataset = {self.dataset}, mode_index = {self.mode_index}")
 
     def select_current_mode(self):
-        self.mode_index = self._wModeTabs.selected_index
+        if self._wModeTabs is not None:
+            self.mode_index = self._wModeTabs.selected_index
 
     def gui( self ) -> ip.Tab():
         from astrolab.gui.application import Astrolab

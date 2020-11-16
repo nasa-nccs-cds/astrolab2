@@ -13,8 +13,9 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
     def __init__(self):
         super(Astrolab, self).__init__()
 
-    def configure(self):
+    def configure( self, name: str ):
         from astrolab.data.manager import DataManager
+        DataManager.instance().name = name
         cfg_file = DataManager.instance().config_file()
         from traitlets.config.loader import load_pyconfig_files
         if os.path.isfile(cfg_file):
@@ -56,7 +57,7 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
         from astrolab.gui.control import ActionsPanel
 
         self.set_astrolab_theme()
-        self.configure()
+        self.configure("spectraclass")
         css_border = '1px solid blue'
 
         tableManager = TableManager.instance()
