@@ -22,15 +22,16 @@ class ActivationFlow(object):
     @classmethod
     def instance(cls, point_data: xa.DataArray, nneighbors: int, **kwargs ) -> "ActivationFlow":
         from astrolab.data.manager import DataManager
+        ptype = DataManager.instance().proc_type
         if cls._instance is None:
-            if DataManager.proc_type == "cpu":
+            if ptype == "cpu":
                 from .cpu import cpActivationFlow
                 cls._instance = cpActivationFlow( point_data, nneighbors, **kwargs )
-            elif DataManager.proc_type == "gpu":
+            elif ptype == "gpu":
                 from .gpu import gpActivationFlow
                 cls._instance =  gpActivationFlow( point_data, nneighbors, **kwargs )
             else:
-                print( f"Error, unknown proc_type: {DataManager.proc_type}")
+                print( f"Error, unknown proc_type: {ptype}")
         return cls._instance
 
 
