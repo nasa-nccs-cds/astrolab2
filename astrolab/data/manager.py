@@ -14,7 +14,7 @@ from astrolab.model.base import AstroConfigurable, AstroModeConfigurable
 class DataManager(tlc.SingletonConfigurable, AstroConfigurable):
     dataset = tl.Unicode("NONE").tag(config=True,sync=True)
     mode_index = tl.Int(0).tag(config=True,sync=True)
-    proc_type = tl.Enum( ["gpu","cpu"], "gpu" ).tag(config=True)
+    proc_type = tl.Unicode( "gpu" ).tag(config=True)
     MODES = [ "swift", "tess" ]
     METAVARS = dict(swift=["target_names", "obsids"], tess=['tics', "camera", "chip", "dec", 'ra', 'tmag'])
     name = tl.Unicode('astroclass').tag(config=True)
