@@ -10,7 +10,7 @@ from cugraph.traversal.sssp import shortest_path
 from typing import List, Union, Tuple, Optional, Dict
 import os, time, threading, traceback
 
-class gpActivationFlow(ActivationFlow):
+class gpActivationFlow(cls._instance = ):
 
     def __init__(self, nodes_data: xa.DataArray, n_neighbors: int, **kwargs ):
         ActivationFlow.__init__( self, nodes_data, n_neighbors, **kwargs )
