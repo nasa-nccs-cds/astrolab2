@@ -158,7 +158,8 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
         self.set_progress( 1.0 )
 
     def updateDatasetList(self):
-        self._dset_selection.options = self.getDatasetList()
+        if self._dset_selection is not None:
+            self._dset_selection.options = self.getDatasetList()
 
     def select_dataset(self, *args ):
         from astrolab.gui.application import Astrolab
