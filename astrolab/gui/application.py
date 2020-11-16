@@ -24,7 +24,11 @@ class Astrolab(tlc.SingletonConfigurable, AstroConfigurable):
             print(f"Loading config files: {config_files} from dir {dir}")
             config = load_pyconfig_files( config_files, dir )
             for clss in self.config_classes:
-                clss.instance().update_config(config)
+                instance = clss.instance()
+                print( f"Configuring instance {instance.__class__.__name__}")
+                instance.update_config(config)
+        else:
+            print( f"Configuration error: '{cfg_file}' is not a file.")
 
     def save_config( self ):
         from astrolab.data.manager import DataManager
