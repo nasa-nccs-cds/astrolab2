@@ -22,6 +22,7 @@ class gpActivationFlow(ActivationFlow):
         self.setNodeData( nodes_data, **kwargs )
 
     def setNodeData(self, nodes_data: xa.DataArray, **kwargs ):
+        print( f"{self.__class__.__name__}.setNodeData: input shape = {nodes_data.shape}" )
         if self.reset or (self.nodes is None):
             if (nodes_data.size > 0):
                 t0 = time.time()

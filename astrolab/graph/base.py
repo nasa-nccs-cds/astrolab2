@@ -29,6 +29,8 @@ class ActivationFlow(object):
             elif DataManager.proc_type == "gpu":
                 from .gpu import gpActivationFlow
                 cls._instance =  gpActivationFlow( point_data, nneighbors, **kwargs )
+            else:
+                print( f"Error, unknown proc_type: {DataManager.proc_type}")
         return cls._instance
 
 
