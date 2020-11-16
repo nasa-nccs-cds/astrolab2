@@ -116,9 +116,13 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
         else:
             raise Exception( f"Unknown data mode: {self.config_mode}, should be 'tess' or 'swift")
 
+    def set_progress(self, pval: float ):
+        if self._progress is not None:
+            self._progress.value = pval
+
     def prepare_inputs( self, *args ):
         self.dm.select_current_mode()
-        self._progress.value = 0.02
+        self.set_progress( 0.02 )
         self.model_dims = self._model_dims_selector.value
         self.subsample = self._subsample_selector.value
         file_name = f"raw" if self.reduce_method == "None" else f"{self.reduce_method}-{self.model_dims}"
@@ -135,19 +139,19 @@ class ModeDataManager( tlc.Configurable, AstroModeConfigurable ):
         data_vars.update( { vid: self.getXarray( vid, xcoords, self.subsample, xdims ) for vid in mdata_vars } )
         pspec = input_vars['plot']
         data_vars.update( { f'plot-{vid}': self.getXarray( pspec[vid], xcoords, self.subsample, xdims, norm=pspec.get('norm','')) for vid in [ 'x', 'y' ] } )
-        self._progress.value = 0.1
+        self.set_progress( 0.1 )
         if self.reduce_method != "None":
            reduced_spectra = ReductionManager.instance().reduce( data_vars['embedding'], self.reduce_method, self.model_dims, self.reduce_nepochs )
            coords = dict( samples=xcoords['samples'], model=np.arange( self.model_dims ) )
            data_vars['reduction'] =  xa.DataArray( reduced_spectra, dims=['samples','model'], coords=coords )
-           self._progress.value = 0.8
+           self.set_progress( 0.8 )
 
         dataset = xa.Dataset( data_vars, coords=xcoords, attrs = {'type':'spectra'} )
         dataset.attrs["colnames"] = mdata_vars
         print( f"Writing output to {output_file}" )
         dataset.to_netcdf( output_file, format='NETCDF4', engine='netcdf4' )
         self.updateDatasetList()
-        self._progress.value = 1.0
+        self.set_progress( 1.0 )
 
     def updateDatasetList(self):
         self._dset_selection.options = self.getDatasetList()
