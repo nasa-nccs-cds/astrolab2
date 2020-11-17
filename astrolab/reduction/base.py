@@ -1,12 +1,8 @@
 from __future__ import print_function
 import locale
 from warnings import warn
-import time
-from scipy.optimize import curve_fit
 from sklearn.base import BaseEstimator
-from sklearn.utils import check_random_state, check_array
-from sklearn.preprocessing import normalize
-from astrolab.graph.cpu import cpActivationFlow
+from astrolab.graph.base import ActivationFlow
 try:
     import joblib
 except ImportError:
@@ -19,9 +15,6 @@ import scipy.sparse.csgraph
 import umap.distances as dist
 import umap.sparse as sparse
 import numba
-from pynndescent import NNDescent
-_HAVE_PYNNDESCENT = True
-
 locale.setlocale(locale.LC_NUMERIC, "C")
 
 INT32_MIN = np.iinfo(np.int32).min + 1
@@ -284,7 +277,7 @@ class UMAP(BaseEstimator):
         self.b = b
 
         self.input_data: np.ndarray = None
-        self.flow: cpActivationFlow = None
+        self.flow: ActivationFlow = None
         self.scoord: xa.DataArray = None
 
 
@@ -474,7 +467,7 @@ class UMAP(BaseEstimator):
 
 
 
-    def embed( self, X: np.ndarray, nnd: NNDescent, y: np.ndarray=None, **kwargs ):
+    def embed( self, X: np.ndarray, y: np.ndarray=None, **kwargs ):
         """Fit X into an embedded space.
 
         Optionally use y for supervised dimension reduction.

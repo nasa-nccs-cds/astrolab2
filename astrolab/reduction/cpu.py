@@ -24,6 +24,7 @@ from umap.layouts import ( optimize_layout_generic, optimize_layout_inverse )
 from pynndescent import NNDescent
 from pynndescent.distances import named_distances as pynn_named_distances
 from pynndescent.sparse import sparse_named_distances as pynn_sparse_named_distances
+from pynndescent import NNDescent
 _HAVE_PYNNDESCENT = True
 
 locale.setlocale(locale.LC_NUMERIC, "C")
@@ -1109,7 +1110,7 @@ def find_ab_params(spread, min_dist):
 
 class cpUMAP(UMAP):
 
-    def embed( self, X: np.ndarray, nnd: NNDescent, y: np.ndarray=None, **kwargs ):
+    def embed( self, X: np.ndarray, y: np.ndarray=None, **kwargs ):
         """Fit X into an embedded space.
 
         Optionally use y for supervised dimension reduction.
@@ -1129,6 +1130,7 @@ class cpUMAP(UMAP):
             ``target_metric_kwds``.
         """
         progress_callback = kwargs.get('progress_callback')
+        nnd: NNDescent = kwargs.get( 'nngraph', None )
         X = check_array(X, dtype=np.float32, accept_sparse="csr", order="C")
         self._raw_data = X
 
