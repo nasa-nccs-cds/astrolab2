@@ -14,9 +14,10 @@ project_dataset: xa.Dataset = DataManager.instance().loadCurrentProject("spectra
 # table_cols = project_dataset.attrs['colnames']
 
 umap_data: xa.DataArray = project_dataset["reduction"]
-data =  cudf.from_pandas( umap_data.to_dataframe() )
+print( f"Computing embedding, input shape = {umap_data.shape}" )
+input_data =  cudf.from_pandas( umap_data.to_dataframe() )
 reducer = cuml.UMAP( n_neighbors=15, n_components=3, n_epochs=500, min_dist=0.1, output_type="numpy" )
-embedding = reducer.fit_transform( data )
+embedding = reducer.fit_transform( input_data )
 print( f"Completed embedding, shape = {embedding.shape}" )
 
 
