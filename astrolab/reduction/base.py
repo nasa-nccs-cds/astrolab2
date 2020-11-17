@@ -3,11 +3,6 @@ import locale
 from warnings import warn
 from sklearn.base import BaseEstimator
 from astrolab.graph.base import ActivationFlow
-try:
-    import joblib
-except ImportError:
-    # sklearn.externals.joblib is deprecated in 0.21, will be removed in 0.23
-    from sklearn.externals import joblib
 import numpy as np
 import xarray as xa
 import scipy.sparse
