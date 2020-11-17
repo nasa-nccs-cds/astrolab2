@@ -511,7 +511,8 @@ class UMAP(BaseEstimator):
         """
         raise NotImplementedError()
 
-    def instance(self, *args, **kwargs ):
+    @classmethod
+    def instance( cls, *args, **kwargs ):
         from astrolab.data.manager import DataManager
         ptype = DataManager.instance().proc_type
         mapper = None
