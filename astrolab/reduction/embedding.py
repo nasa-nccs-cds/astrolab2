@@ -11,6 +11,7 @@ from astrolab.model.base import AstroConfigurable
 class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
     init = tl.Unicode("random").tag(config=True,sync=True)
     nepochs = tl.Int( 100 ).tag(config=True,sync=True)
+    nneighbors = tl.Int(15).tag(config=True, sync=True)
     alpha = tl.Float( 0.25 ).tag(config=True,sync=True)
     ndim = tl.Int( 3 ).tag(config=True,sync=True)
     target_weight = tl.Float( 0.5 ).tag(config=True,sync=True)
@@ -86,7 +87,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return  encoder.predict( encoder_input )
 
     def umap_init( self,  point_data: xa.DataArray, **kwargs ) -> Optional[np.ndarray]:
-        from .umap import UMAP
+        from .cpu import UMAP
         self._state = self.NEW_DATA
         self._dsid = point_data.attrs['dsid']
         LabelsManager.instance().initLabelsData(point_data)
@@ -105,7 +106,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return mapper.embedding
 
     def umap_embedding( self, **kwargs ) -> Optional[np.ndarray]:
-        from .umap import UMAP
+        from .cpu import UMAP
         mapper: UMAP = self.getUMapper(self._dsid, self.ndim)
         if 'nepochs' not in kwargs.keys():   kwargs['nepochs'] = self.nepochs
         if 'alpha' not in kwargs.keys():   kwargs['alpha'] = self.alpha
@@ -117,7 +118,7 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return mapper.embedding
 
     def xa_umap_embedding( self, **kwargs ) -> Optional[xa.DataArray]:
-        from .umap import UMAP
+        from .cpu import UMAP
         mapper: UMAP = self.getUMapper(self._dsid, self.ndim)
         if mapper.embedding is None: self.umap_embedding( **kwargs )
         return None if mapper.embedding is None else self.wrap_embedding( mapper.scoord, mapper.embedding, **kwargs )
@@ -127,13 +128,13 @@ class ReductionManager(tlc.SingletonConfigurable, AstroConfigurable):
         return xa.DataArray( embedding, dims=['samples','model'], coords=dict( samples=ax_samples, model=ax_model ) )
 
     def getUMapper(self, dsid: str, ndim: int ):
-        from .umap import UMAP
         mid = f"{ndim}-{dsid}"
         nneighbors = ActivationFlowManager.instance().nneighbors
         mapper = self._mapper.get( mid )
         if ( mapper is None ):
-            parms = dict( n_neighbors=nneighbors, init=self.init, target_weight=self.target_weight ); parms.update( **self.conf, n_components=ndim )
-            mapper = UMAP(**parms)
+            from .base import UMAP
+            kwargs = dict( n_neighbors=nneighbors, init=self.init, target_weight=self.target_weight, n_components=ndim, **self.conf )
+            mapper = UMAP.instance( **kwargs )
             self._mapper[mid] = mapper
         self._current_mapper = mapper
         return mapper
